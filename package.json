@@ -1,0 +1,27 @@
+{
+  "name": "sdk-ts-boilerplate",
+  "author": "metaversecloud.com | topia.io",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "build": "npm run build -ws",
+    "start": "npm run start -w server",
+    "dev": "concurrently \"npm run dev-server\" \"npm run dev-client\"",
+    "dev-server": "npm run dev --prefix server",
+    "dev-client": "npm run dev --prefix client"
+  },
+  "dependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "license": "BSD-3-Clause",
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/cors": "^2.8.17",
+    "prettier": "3.2.5"
+  },
+  "workspaces": [
+    "client",
+    "server"
+  ]
+}
