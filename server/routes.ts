@@ -9,6 +9,7 @@ import {
   handleCheckInteractiveCredentials,
 } from "./controllers/index.js"
 import { getVersion } from "./utils/getVersion.js"
+import isAdminCheck from "./controllers/status/isAdminCheck.js";
 
 const router = express.Router();
 
@@ -42,5 +43,7 @@ router.get("/visitor", handleGetVisitor);
 // World
 router.get("/world", handleGetWorldDetails);
 router.put("/world/data-object", handleUpdateWorldDataObject);
+
+router.get("/is-admin", isAdminCheck);
 
 export default router;

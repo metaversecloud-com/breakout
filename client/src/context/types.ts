@@ -1,5 +1,8 @@
-export const SET_HAS_SETUP_BACKEND = "SET_HAS_SETUP_BACKEND";
+import { AxiosInstance } from "axios";
+
 export const SET_INTERACTIVE_PARAMS = "SET_INTERACTIVE_PARAMS";
+export const SET_BACKEND_API = "SET_BACKEND_API";
+export const SET_IS_ADMIN = "SET_IS_ADMIN";
 
 export type InteractiveParams = {
   assetId: string;
@@ -16,7 +19,8 @@ export type InteractiveParams = {
 
 export interface InitialState {
   hasInteractiveParams: boolean;
-  hasSetupBackend: boolean;
+  backendAPI: AxiosInstance | null;
+  isAdmin: boolean | undefined;
 }
 
 export type ActionType = {

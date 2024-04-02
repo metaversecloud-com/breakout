@@ -33,7 +33,7 @@ const setupBackendAPI = async (interactiveParams: InteractiveParams) => {
 
   try {
     await backendAPI.get("/system/interactive-credentials");
-    return { success: true }
+    return { backendAPI, success: true }
   } catch (error) {
     return { success: false }
   }

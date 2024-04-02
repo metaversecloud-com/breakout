@@ -6,16 +6,27 @@ import Home from "@pages/Home";
 import Error from "@pages/Error";
 
 // context
-import { GlobalDispatchContext } from "./context/GlobalContext";
-import { InteractiveParams, SET_HAS_SETUP_BACKEND, SET_INTERACTIVE_PARAMS } from "./context/types";
+import { GlobalDispatchContext, GlobalStateContext } from "./context/GlobalContext";
+import {
+  InitialState,
+  InteractiveParams,
+  SET_BACKEND_API,
+  SET_INTERACTIVE_PARAMS,
+  SET_IS_ADMIN,
+} from "./context/types";
 
 // utils
 import { setupBackendAPI } from "./utils/backendAPI";
+import { AxiosInstance } from "axios";
+import { checkIsAdmin } from "./context/actions";
+import Admin from "./pages/Admin";
 
 const App = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [hasInitBackendAPI, setHasInitBackendAPI] = useState(false);
+
+  const { backendAPI } = useContext(GlobalStateContext) as InitialState;
 
   const dispatch = useContext(GlobalDispatchContext);
 
@@ -68,21 +79,15 @@ const App = () => {
     [dispatch],
   );
 
-  const setHasSetupBackend = useCallback((success: boolean) => {
+  const setBackendAPI = useCallback(
+    (backendAPI: AxiosInstance) => {
       dispatch!({
-        type: SET_HAS_SETUP_BACKEND,
-        payload: { hasSetupBackend: success },
+        type: SET_BACKEND_API,
+        payload: { backendAPI },
       });
     },
     [dispatch],
   );
-
-  const setupBackend = async () =>{
-      const setupResult = await setupBackendAPI(interactiveParams);
-      setHasSetupBackend(setupResult.success);
-      if(!setupResult.success) navigate('*');
-      else setHasInitBackendAPI(true);
-  }
 
   useEffect(() => {
     if (interactiveParams.assetId) {
@@ -93,15 +98,39 @@ const App = () => {
   }, [interactiveParams, setInteractiveParams]);
 
   useEffect(() => {
-    if (!hasInitBackendAPI) setupBackend();
-  }, [hasInitBackendAPI, interactiveParams]);
+    const setupBackend = async () => {
+      const setupResult = await setupBackendAPI(interactiveParams);
 
+      if (!setupResult.success) {
+        navigate("*");
+      } else {
+        setBackendAPI(setupResult.backendAPI as AxiosInstance);
+        setHasInitBackendAPI(true);
+      }
+    };
 
+    if (!hasInitBackendAPI) {
+      setupBackend();
+    }
+  }, [hasInitBackendAPI, interactiveParams, navigate, setBackendAPI, setHasInitBackendAPI]);
+
+  useEffect(() => {
+    const adminCheck = async () => {
+      if (backendAPI) {
+        const { isAdmin } = await checkIsAdmin(backendAPI);
+        dispatch!({ type: SET_IS_ADMIN, payload: { isAdmin } });
+      }
+    };
+    adminCheck();
+  }, [backendAPI, dispatch]);
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="*" element={<Error />} />
-    </Routes>
+    <div className="container p-6 flex flex-col items-center justify-center">
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/admin" element={<Admin />} />
+        <Route path="*" element={<Error />} />
+      </Routes>
+    </div>
   );
 };
 
