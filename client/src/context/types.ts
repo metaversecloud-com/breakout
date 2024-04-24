@@ -2,7 +2,7 @@ import { AxiosInstance } from "axios";
 
 export const SET_INTERACTIVE_PARAMS = "SET_INTERACTIVE_PARAMS";
 export const SET_BACKEND_API = "SET_BACKEND_API";
-export const SET_IS_ADMIN = "SET_IS_ADMIN";
+export const SET_INIT = "SET_INIT";
 
 export type InteractiveParams = {
   assetId: string;
@@ -15,12 +15,18 @@ export type InteractiveParams = {
   urlSlug: string;
   username: string;
   visitorId: string;
-}
+};
 
 export interface InitialState {
   hasInteractiveParams: boolean;
   backendAPI: AxiosInstance | null;
-  isAdmin: boolean | undefined;
+  isAdmin: boolean | null;
+  initLoading: boolean;
+  startLoading: boolean;
+  sessionData: {
+    secondsPerRound: number;
+    numOfRounds: number;
+  } | null;
 }
 
 export type ActionType = {

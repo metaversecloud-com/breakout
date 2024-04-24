@@ -1,4 +1,4 @@
-import { ActionType, InitialState, SET_BACKEND_API, SET_INTERACTIVE_PARAMS, SET_IS_ADMIN } from "./types";
+import { ActionType, InitialState, SET_BACKEND_API, SET_INTERACTIVE_PARAMS, SET_INIT } from "./types";
 
 const globalReducer = (state: InitialState, action: ActionType) => {
   const { type, payload } = action;
@@ -14,10 +14,11 @@ const globalReducer = (state: InitialState, action: ActionType) => {
         ...state,
         backendAPI: payload.backendAPI,
       };
-    case SET_IS_ADMIN:
+    case SET_INIT:
       return {
         ...state,
         isAdmin: payload.isAdmin,
+        initLoading: false,
       };
     default: {
       throw new Error(`Unhandled action type: ${type}`);

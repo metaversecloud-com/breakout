@@ -10,6 +10,9 @@ import {
 } from "./controllers/index.js"
 import { getVersion } from "./utils/getVersion.js"
 import isAdminCheck from "./controllers/status/isAdminCheck.js";
+import GetDataObject from "./controllers/session/GetDataObject.js";
+import handleStartBreakout from "./controllers/session/handleStartBreakout.js";
+import { isAdmin } from "./middleware/isAdmin.js";
 
 const router = express.Router();
 
@@ -45,5 +48,8 @@ router.get("/world", handleGetWorldDetails);
 router.put("/world/data-object", handleUpdateWorldDataObject);
 
 router.get("/is-admin", isAdminCheck);
+
+router.get("/data-object", GetDataObject);
+router.post("/start", isAdmin, handleStartBreakout)
 
 export default router;

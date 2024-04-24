@@ -12,13 +12,13 @@ import {
   InteractiveParams,
   SET_BACKEND_API,
   SET_INTERACTIVE_PARAMS,
-  SET_IS_ADMIN,
+  SET_INIT,
 } from "./context/types";
 
 // utils
 import { setupBackendAPI } from "./utils/backendAPI";
 import { AxiosInstance } from "axios";
-import { checkIsAdmin } from "./context/actions";
+import { checkInteractiveCredentials, checkIsAdmin, fetchDataObject } from "./context/actions";
 import Admin from "./pages/Admin";
 
 const App = () => {
@@ -97,32 +97,37 @@ const App = () => {
     }
   }, [interactiveParams, setInteractiveParams]);
 
+  const setupBackend = useCallback(async () => {
+    const backendAPI = await setupBackendAPI(interactiveParams);
+
+    dispatch!({ type: SET_BACKEND_API, payload: { backendAPI } });
+  }, [dispatch, interactiveParams]);
+
   useEffect(() => {
-    const setupBackend = async () => {
-      const setupResult = await setupBackendAPI(interactiveParams);
-
-      if (!setupResult.success) {
-        navigate("*");
-      } else {
-        setBackendAPI(setupResult.backendAPI as AxiosInstance);
-        setHasInitBackendAPI(true);
-      }
-    };
-
-    if (!hasInitBackendAPI) {
+    if (!backendAPI) {
       setupBackend();
     }
-  }, [hasInitBackendAPI, interactiveParams, navigate, setBackendAPI, setHasInitBackendAPI]);
+  }, [backendAPI, setupBackend]);
 
   useEffect(() => {
-    const adminCheck = async () => {
+    const initialLoad = () => {
       if (backendAPI) {
-        const { isAdmin } = await checkIsAdmin(backendAPI);
-        dispatch!({ type: SET_IS_ADMIN, payload: { isAdmin } });
+        Promise.all([
+          checkInteractiveCredentials(backendAPI),
+          checkIsAdmin(backendAPI),
+          fetchDataObject(backendAPI),
+        ]).then(([result, admin, dataObject]) => {
+          if (!result || !result.success) {
+            navigate("*");
+          }
+          dispatch!({ type: SET_INIT, payload: { isAdmin: admin.isAdmin } });
+
+        });
       }
     };
-    adminCheck();
-  }, [backendAPI, dispatch]);
+    initialLoad();
+  }, [backendAPI, dispatch, navigate]);
+
   return (
     <div className="container p-6 flex flex-col items-center justify-center">
       <Routes>

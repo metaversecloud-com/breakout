@@ -1,29 +1,31 @@
-import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import AdminControls from "@/components/AdminControls";
+import { GlobalStateContext } from "@/context/GlobalContext";
+import { startBreakout } from "@/context/actions";
+import { InitialState } from "@/context/types";
+import React, { useContext } from "react";
 
 const Admin: React.FC = () => {
-  const location = useLocation();
-  const currentPath = location.pathname;
+  const { backendAPI } = useContext(GlobalStateContext) as InitialState;
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const [startLoading, setStartLoading] = React.useState(false);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const timePerRound = (e.currentTarget[0] as HTMLInputElement).value;
-    const numberOfRounds = (e.currentTarget[1] as HTMLInputElement).value;
-    const numberOfPeople = (e.currentTarget[2] as HTMLInputElement).value;
+    setStartLoading(true);
+    const minutes = parseInt((e.currentTarget[0] as HTMLInputElement).value);
+    const seconds = parseInt((e.currentTarget[1] as HTMLInputElement).value);
+    const numberOfRounds = parseInt((e.currentTarget[2] as HTMLInputElement).value);
+    const numberOfGroups = parseInt((e.currentTarget[3] as HTMLInputElement).value);
+    const includeAdmins = (e.currentTarget[4] as HTMLInputElement).checked;
 
-    console.log({ timePerRound, numberOfRounds, numberOfPeople });
-  }
-  
+    await startBreakout(backendAPI, { secondsPerRound: minutes * 60 + seconds, numOfRounds: numberOfRounds });
+    console.log("Values", { minutes, seconds, numberOfRounds, numberOfGroups, includeAdmins });
+    setStartLoading(false);
+  };
+
   return (
     <>
-      {currentPath !== "/" && (
-        <Link
-          to="/"
-          className="border rounded-full flex self-start items-center justify-center p-1 hover:bg-[#f3f5f6] transition-colors !w-fit"
-        >
-          <i className="icon left-arrow-icon h-6 w-6" />
-        </Link>
-      )}
+      <AdminControls />
       <div className="flex flex-col w-full">
         <h3 className="h3 !my-4 !font-semibold text-center">Configure a Breakout</h3>
         <div className="flex flex-col w-full">
@@ -55,7 +57,7 @@ const Admin: React.FC = () => {
             </div>
             <div className="flex w-full my-2 justify-between items-center">
               <label htmlFor="breakout-number-of-people" className="w-2/5">
-                <p className="p2">Number of people per group</p>
+                <p className="p2">Number of groups</p>
               </label>
               <div className="flex items-center">
                 <input
@@ -68,6 +70,15 @@ const Admin: React.FC = () => {
                 />
               </div>
             </div>
+            <div className="flex w-full my-2 justify-start items-center">
+              <div className="flex items-center mr-2">
+                <input id="breakout-include-admin" className="input input-checkbox" type="checkbox" />
+              </div>
+              <label htmlFor="breakout-include-admin" className="w-2/5">
+                <p className="p2">Include Admins</p>
+              </label>
+            </div>
+
             <button type="submit" className="btn btn-enhanced my-2">
               Save
             </button>
