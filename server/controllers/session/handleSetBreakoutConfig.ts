@@ -2,10 +2,23 @@ import { Credentials } from "../../types/index.js";
 import { errorHandler, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 
-export default async function handleStartBreakout(req: Request, res: Response) {
+export default async function handleSetBreakoutConfig(req: Request, res: Response) {
   const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as unknown as Credentials;
 
-  const { secondsPerRound, numOfRounds }: { secondsPerRound: number; numOfRounds: number } = req.body;
+  const {
+    numOfGroups,
+    numOfRounds,
+    minutes,
+    seconds,
+    includeAdmins,
+  }: {
+    numOfGroups: number;
+    numOfRounds: number;
+    minutes: number;
+    seconds: number;
+    includeAdmins: boolean;
+  } = req.body;
+
   const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId };
   // const [isAdmin, keyAsset] = await Promise.all([checkIsAdmin(credentials), getDroppedAsset(credentials)]);
   const keyAsset = await getDroppedAsset(credentials);
@@ -17,8 +30,9 @@ export default async function handleStartBreakout(req: Request, res: Response) {
       {
         ...keyAsset.dataObject,
         startTime: Date.now(),
-        secondsPerRound,
+        secondsPerRound: minutes * 60 + seconds,
         numOfRounds,
+        status: "active"
       },
       {
         lock: {

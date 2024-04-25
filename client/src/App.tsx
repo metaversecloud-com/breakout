@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import { Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 
 // pages
@@ -7,24 +7,15 @@ import Error from "@pages/Error";
 
 // context
 import { GlobalDispatchContext, GlobalStateContext } from "./context/GlobalContext";
-import {
-  InitialState,
-  InteractiveParams,
-  SET_BACKEND_API,
-  SET_INTERACTIVE_PARAMS,
-  SET_INIT,
-} from "./context/types";
+import { InitialState, InteractiveParams, SET_BACKEND_API, SET_INTERACTIVE_PARAMS, SET_INIT } from "./context/types";
 
 // utils
 import { setupBackendAPI } from "./utils/backendAPI";
-import { AxiosInstance } from "axios";
 import { checkInteractiveCredentials, checkIsAdmin, fetchDataObject } from "./context/actions";
-import Admin from "./pages/Admin";
 
 const App = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [hasInitBackendAPI, setHasInitBackendAPI] = useState(false);
 
   const { backendAPI } = useContext(GlobalStateContext) as InitialState;
 
@@ -79,16 +70,6 @@ const App = () => {
     [dispatch],
   );
 
-  const setBackendAPI = useCallback(
-    (backendAPI: AxiosInstance) => {
-      dispatch!({
-        type: SET_BACKEND_API,
-        payload: { backendAPI },
-      });
-    },
-    [dispatch],
-  );
-
   useEffect(() => {
     if (interactiveParams.assetId) {
       setInteractiveParams({
@@ -120,8 +101,7 @@ const App = () => {
           if (!result || !result.success) {
             navigate("*");
           }
-          dispatch!({ type: SET_INIT, payload: { isAdmin: admin.isAdmin } });
-
+          dispatch!({ type: SET_INIT, payload: { isAdmin: admin.isAdmin, dataObject } });
         });
       }
     };
@@ -132,7 +112,6 @@ const App = () => {
     <div className="container p-6 flex flex-col items-center justify-center">
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/admin" element={<Admin />} />
         <Route path="*" element={<Error />} />
       </Routes>
     </div>

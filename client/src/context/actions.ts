@@ -29,15 +29,18 @@ const fetchDataObject = async (backendAPI: AxiosInstance) => {
   }
 };
 
-const startBreakout = async (
+const setBreakoutConfig = async (
   backendAPI: AxiosInstance,
   data: {
-    secondsPerRound: number;
+    numOfGroups: number;
     numOfRounds: number;
+    minutes: number;
+    seconds: number;
+    includeAdmins: boolean;
   },
 ) => {
   try {
-    const result = await backendAPI.post("/start", data);
+    const result = await backendAPI.post("/set-config", data);
     return result.data;
   } catch (error) {
     console.error(error);
@@ -45,4 +48,14 @@ const startBreakout = async (
   }
 };
 
-export { checkIsAdmin, checkInteractiveCredentials, fetchDataObject, startBreakout };
+const endBreakout = async (backendAPI: AxiosInstance) => {
+  try {
+    const result = await backendAPI.post("/reset");
+    return result.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export { checkIsAdmin, checkInteractiveCredentials, fetchDataObject, setBreakoutConfig, endBreakout };

@@ -6,6 +6,7 @@ export const defaultDataObject = {
   numOfRounds: 0,
   secondsPerRound: 0,
   startTime: 0,
+  status: "waiting",
 };
 
 export const initializeBreakoutSession = async (droppedAsset: IDroppedAsset) => {

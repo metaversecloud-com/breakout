@@ -7,12 +7,13 @@ import {
   handleGetWorldDetails,
   handleUpdateWorldDataObject,
   handleCheckInteractiveCredentials,
-} from "./controllers/index.js"
-import { getVersion } from "./utils/getVersion.js"
+} from "./controllers/index.js";
+import { getVersion } from "./utils/getVersion.js";
 import isAdminCheck from "./controllers/status/isAdminCheck.js";
 import GetDataObject from "./controllers/session/GetDataObject.js";
-import handleStartBreakout from "./controllers/session/handleStartBreakout.js";
 import { isAdmin } from "./middleware/isAdmin.js";
+import handleSetBreakoutConfig from "./controllers/session/handleSetBreakoutConfig.js";
+import handleResetSession from "./controllers/session/handleResetSession.js";
 
 const router = express.Router();
 
@@ -50,6 +51,7 @@ router.put("/world/data-object", handleUpdateWorldDataObject);
 router.get("/is-admin", isAdminCheck);
 
 router.get("/data-object", GetDataObject);
-router.post("/start", isAdmin, handleStartBreakout)
+router.post("/set-config", isAdmin, handleSetBreakoutConfig);
+router.post("/reset", isAdmin, handleResetSession);
 
 export default router;

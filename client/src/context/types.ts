@@ -3,6 +3,8 @@ import { AxiosInstance } from "axios";
 export const SET_INTERACTIVE_PARAMS = "SET_INTERACTIVE_PARAMS";
 export const SET_BACKEND_API = "SET_BACKEND_API";
 export const SET_INIT = "SET_INIT";
+export const SET_BREAKOUT = "SET_BREAKOUT";
+export const RESET_BREAKOUT = "RESET_BREAKOUT";
 
 export type InteractiveParams = {
   assetId: string;
@@ -26,6 +28,9 @@ export interface InitialState {
   sessionData: {
     secondsPerRound: number;
     numOfRounds: number;
+    participants: string[];
+    startTime: string;
+    status: string;
   } | null;
 }
 
