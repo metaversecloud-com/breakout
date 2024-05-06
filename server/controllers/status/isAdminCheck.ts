@@ -6,6 +6,7 @@ export default async function isAdminCheck(req: Request, res: Response) {
   try {
     const { interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as Credentials;
     const visitor = await getVisitor({ interactivePublicKey, interactiveNonce, urlSlug, visitorId });
+
     if (!visitor) {
       return res.status(404).json({ message: "Visitor not found" });
     } else if (visitor.isAdmin) {

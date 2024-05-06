@@ -1,12 +1,30 @@
 import { Credentials } from "../../types/index.js";
-import { errorHandler, getDroppedAsset } from "../../utils/index.js";
+import { WorldActivity, errorHandler, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 
 export default async function GetDataObject(req: Request, res: Response) {
   try {
-    const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as unknown as Credentials;
-    const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId };
+    const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId } =
+      req.query as unknown as Credentials;
+    const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId };
+
+    const worldActivity = WorldActivity.create(urlSlug, {
+      credentials: {
+        interactiveNonce,
+        interactivePublicKey,
+        visitorId,
+      },
+    });
+
+    // const [keyAsset, visitors] = await Promise.all([getDroppedAsset(credentials), worldActivity.fetchVisitorsInZone()]);
     const keyAsset = await getDroppedAsset(credentials);
+    const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
+    // debugger;
+    const visitorProfileIds = Object.values(visitors).map((visitor) => visitor.profileId);
+    // const keyAsset = await getDroppedAsset(credentials);
+    // const visitors = await world.currentVisitors();
+    keyAsset.dataObject.participants = visitorProfileIds;
+
     if (keyAsset.error) {
       return res.status(404).json({ message: "Asset not found" });
     }
@@ -19,7 +37,7 @@ export default async function GetDataObject(req: Request, res: Response) {
       functionName: "GetJukeboxDataObject",
       message: "Error getting Jukebox",
       req,
-      res
+      res,
     });
   }
 }

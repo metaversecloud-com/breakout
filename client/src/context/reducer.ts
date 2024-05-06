@@ -20,7 +20,7 @@ const globalReducer = (state: InitialState, action: ActionType) => {
         isAdmin: payload.isAdmin,
         initLoading: false,
         sessionData: {
-          participants: parseInt(payload.dataObject.participants),
+          participants: payload.dataObject.participants,
           numOfRounds: parseInt(payload.dataObject.numOfRounds),
           secondsPerRound: parseInt(payload.dataObject.secondsPerRound),
           startTime: parseInt(payload.dataObject.startTime),

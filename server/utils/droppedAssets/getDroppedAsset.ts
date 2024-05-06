@@ -5,14 +5,14 @@ import { initializeBreakoutSession } from "./initializeBreakoutSession.js";
 
 export const getDroppedAsset = async (credentials: Credentials) => {
   try {
-    const { assetId, urlSlug } = credentials;
+    const { assetId, urlSlug, sceneDropId } = credentials;
 
     const droppedAsset = await DroppedAsset.get(assetId, urlSlug, { credentials });
 
     if (!droppedAsset) throw "Dropped asset not found";
 
     if (!droppedAsset.dataObject || !droppedAsset.dataObject.participants) {
-      await initializeBreakoutSession(droppedAsset);
+      await initializeBreakoutSession(droppedAsset, credentials, sceneDropId);
     }
     
     return droppedAsset;

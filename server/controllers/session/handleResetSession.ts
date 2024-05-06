@@ -13,7 +13,7 @@ export default async function handleResetSession(req: Request, res: Response) {
 
   try {
     await keyAsset.updateDataObject(
-      defaultDataObject,
+      { ...defaultDataObject, landMarkZoneId: keyAsset.dataObject.landMarkZoneId },
       {
         lock: {
           lockId,
@@ -25,8 +25,8 @@ export default async function handleResetSession(req: Request, res: Response) {
   } catch (err) {
     return errorHandler({
       err,
-      functionName: "handleStartBreakout",
-      message: "Error starting breakout",
+      functionName: "handleResetSession",
+      message: "Error resetting breakout",
       req,
       res,
     });

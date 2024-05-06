@@ -6,7 +6,10 @@ import React, { useContext, useState } from "react";
 const Configure: React.FC = () => {
   const dispatch = useContext(GlobalDispatchContext);
 
-  const { backendAPI } = useContext(GlobalStateContext) as InitialState;
+  const { backendAPI, sessionData } = useContext(GlobalStateContext) as InitialState;
+
+  const [showModal, setShowModal] = useState(false);
+  const [startLoading, setStartLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     numOfGroups: 1,
@@ -24,10 +27,12 @@ const Configure: React.FC = () => {
     });
   };
 
-  const [startLoading, setStartLoading] = React.useState(false);
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleConfirmation = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setShowModal(true);
+  };
+
+  const handleSubmit = async () => {
     setStartLoading(true);
 
     const { startTime } = await setBreakoutConfig(backendAPI!, formData);
@@ -41,12 +46,17 @@ const Configure: React.FC = () => {
     <>
       {/* <AdminControls /> */}
       <div className="flex flex-col w-full">
-        <h4 className="h4 !my-8 !font-semibold text-center">Configure Breakout</h4>
+        <div className="flex w-full !my-8 items-center justify-between">
+          <h4 className="h4 !font-semibold text-center">Configure Breakout</h4>
+          <button className="btn btn-enhanced !w-fit" onClick={() => location.reload()}>
+            Refresh
+          </button>
+        </div>
         <div className="flex flex-col w-full">
-          <form onSubmit={handleSubmit} className="flex flex-col w-full">
+          <form onSubmit={handleConfirmation} className="flex flex-col w-full">
             <div className="flex items-center w-full my-2">
               <label className="flex items-center text-[#3b5166]" htmlFor="breakout-numOfGroups">
-                Assign X participants into
+                Assign {sessionData?.participants.length} participants into
                 <input
                   id="breakout-numOfGroups"
                   type="number"
@@ -54,7 +64,7 @@ const Configure: React.FC = () => {
                   value={formData.numOfGroups}
                   onChange={handleInputChange}
                   min={1}
-                  max={16}
+                  max={sessionData?.participants.length}
                   className="border p-1 rounded-md text-center mx-1 w-16"
                 />
                 groups
@@ -112,12 +122,29 @@ const Configure: React.FC = () => {
                 sec
               </label>
             </div>
-            <button disabled={startLoading} type="submit" className="btn btn-enhanced mb-2 mt-8">
-              {startLoading ? "Starting..." : "Start Breakout"}
+            <button type="submit" className="btn btn-enhanced mb-2 mt-8">
+              Start Breakout
             </button>
           </form>
         </div>
       </div>
+
+      {showModal && (
+        <div className="modal-container visible">
+          <div className="modal">
+            <h4 className="h4 capitalize">Confirmation</h4>
+            <p className="p2">Are you sure you want to confirm these configurations?</p>
+            <div className="actions">
+              <button className="btn btn-outline" onClick={() => setShowModal(false)}>
+                Close
+              </button>
+              <button className="btn btn-danger-outline" onClick={handleSubmit} disabled={startLoading}>
+                {startLoading ? "Starting..." : "Yes"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };
