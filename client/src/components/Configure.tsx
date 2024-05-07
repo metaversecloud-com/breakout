@@ -36,7 +36,20 @@ const Configure: React.FC = () => {
     setStartLoading(true);
 
     const { startTime } = await setBreakoutConfig(backendAPI!, formData);
-    dispatch!({ type: SET_BREAKOUT, payload: { data: { ...formData, startTime, status: "active" } } });
+    dispatch!({
+      type: SET_BREAKOUT,
+      payload: {
+        data: {
+          numOfGroups: parseInt(formData.numOfGroups),
+          numOfRounds: parseInt(formData.numOfRounds),
+          minutes: parseInt(formData.minutes),
+          seconds: parseInt(formData.seconds),
+          includeAdmins: formData.includeAdmins,
+          startTime,
+          status: "active",
+        },
+      },
+    });
 
     // console.log("Values", { minutes, seconds, numberOfRounds, numberOfGroups, includeAdmins });
     setStartLoading(false);

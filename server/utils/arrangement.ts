@@ -70,7 +70,7 @@ const match = (
           if (
             includesAny(
               matchesObj[match[i]].flat(),
-              match.filter((el, index) => index !== i),
+              match.filter((_, index) => index !== i),
             )
           ) {
             return false;

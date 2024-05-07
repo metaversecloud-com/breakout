@@ -31,7 +31,7 @@ const globalReducer = (state: InitialState, action: ActionType) => {
       return {
         ...state,
         sessionData: {
-          participants: parseInt(payload.data.participants),
+          participants: payload.data.participants,
           numOfRounds: parseInt(payload.data.numOfRounds),
           secondsPerRound: parseInt(payload.data.minutes) * 60 + parseInt(payload.data.seconds),
           startTime: parseInt(payload.data.startTime),
@@ -42,7 +42,7 @@ const globalReducer = (state: InitialState, action: ActionType) => {
       return {
         ...state,
         sessionData: {
-          participants: 0,
+          participants: [],
           numOfRounds: 0,
           secondsPerRound: 0,
           startTime: 0,

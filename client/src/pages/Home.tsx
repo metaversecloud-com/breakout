@@ -6,7 +6,7 @@ import Round from "@/components/Round";
 import DottedLoader from "@/components/DottedLoader";
 import Configure from "@/components/Configure";
 import { endBreakout } from "@/context/actions";
-import { RESET_BREAKOUT } from "@/context/types";
+import { RESET_BREAKOUT, SET_INIT } from "@/context/types";
 
 const Home: React.FC = () => {
   const dispatch = useContext(GlobalDispatchContext);
@@ -20,6 +20,7 @@ const Home: React.FC = () => {
     const res = await endBreakout(backendAPI!);
     if (res && res.success) {
       dispatch!({ type: RESET_BREAKOUT });
+      dispatch!({ type: SET_INIT, payload: { isAdmin, dataObject: res.dataObject } });
     }
     setEndLoading(false);
   };

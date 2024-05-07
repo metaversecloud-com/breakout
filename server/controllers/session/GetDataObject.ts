@@ -16,13 +16,10 @@ export default async function GetDataObject(req: Request, res: Response) {
       },
     });
 
-    // const [keyAsset, visitors] = await Promise.all([getDroppedAsset(credentials), worldActivity.fetchVisitorsInZone()]);
     const keyAsset = await getDroppedAsset(credentials);
     const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
-    // debugger;
     const visitorProfileIds = Object.values(visitors).map((visitor) => visitor.profileId);
-    // const keyAsset = await getDroppedAsset(credentials);
-    // const visitors = await world.currentVisitors();
+
     keyAsset.dataObject.participants = visitorProfileIds;
 
     if (keyAsset.error) {
