@@ -32,7 +32,8 @@ setInterval(() => {
   for (const key in intervals) {
     if (
       intervals[key].data.startTime +
-        (intervals[key].data.secondsPerRound + 10) * 1000 * intervals[key].data.numOfRounds <
+        (intervals[key].data.secondsPerRound + 10) * 1000 * intervals[key].data.numOfRounds +
+        5000 <
       Date.now()
     ) {
       endBreakout(key);
@@ -66,6 +67,9 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const privateZones = breakoutScene.filter(
     (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
   ) as DroppedAsset[];
+  const landMarkZone = breakoutScene.find(
+    (droppedAsset: DroppedAsset) => droppedAsset.isLandmarkZoneEnabled,
+  ) as DroppedAsset;
 
   const worldActivity = WorldActivity.create(urlSlug, {
     credentials: {
@@ -174,63 +178,90 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     await Promise.all(promises);
   };
 
-  if (numOfRounds > 1) {
-    const interval = setInterval(
-      () => {
-        const nextRound = async () => {
-          const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
-          const lockId = `${keyAsset.id}_${timeFactor}`;
-          intervals[keyAsset.id].data.round += 1;
+  const moveToLobby = async (visitorsObj: { [key: string]: Visitor }) => {
+    const visitors = Object.values(visitorsObj);
+    const landMarkZoneCenter = [landMarkZone.position!.x, landMarkZone.position!.y];
+    const promises: Promise<any>[] = [];
 
-          try {
-            const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
-            const participants = Object.values(visitorsObj).map((visitor) => visitor.profileId) as string[];
+    visitors.forEach((visitor) => {
+      const xSign = Math.random() < 0.5 ? -1 : 1;
+      promises.push(
+        visitor.moveVisitor({
+          shouldTeleportVisitor: true,
+          x: landMarkZoneCenter[1] + Math.floor(Math.random() * 490) * xSign,
+          y: landMarkZoneCenter[1] + 600 + Math.floor(Math.random() * 231),
+        }),
+      );
+    });
+    await Promise.all(promises);
+  };
 
-            const matches = getMatches(false, keyAsset.id, participants);
+  const interval = setInterval(
+    () => {
+      const nextRound = async () => {
+        const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
+        const lockId = `${keyAsset.id}_${timeFactor}`;
+        intervals[keyAsset.id].data.round += 1;
 
-            await Promise.all([
-              keyAsset.updateDataObject(
-                {
-                  ...keyAsset.dataObject,
-                  matches: JSON.stringify(matches),
-                  participants,
-                  startTime,
-                  secondsPerRound: minutes * 60 + seconds,
-                  numOfRounds,
-                  status: "active",
+        try {
+          const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
+          const participants = Object.values(visitorsObj).map((visitor) => visitor.profileId) as string[];
+
+          const matches = getMatches(false, keyAsset.id, participants);
+
+          await Promise.all([
+            keyAsset.updateDataObject(
+              {
+                ...keyAsset.dataObject,
+                matches: JSON.stringify(matches),
+                participants,
+                startTime,
+                secondsPerRound: minutes * 60 + seconds,
+                numOfRounds,
+                status: "active",
+              },
+              {
+                lock: {
+                  lockId,
+                  releaseLock: false,
                 },
-                {
-                  lock: {
-                    lockId,
-                    releaseLock: false,
-                  },
-                },
-              ),
-              openIframeForVisitors(visitorsObj, keyAsset.id),
-            ]);
+              },
+            ),
+            openIframeForVisitors(visitorsObj, keyAsset.id),
+          ]);
 
-            setTimeout(() => {
-              placeVisitors(matches, visitorsObj, participants);
-            }, 9000);
+          setTimeout(() => {
+            placeVisitors(matches, visitorsObj, participants);
+          }, 9000);
 
-            return { success: true, startTime };
-          } catch (err) {
-            return errorHandler({
-              err,
-              functionName: "Cannot go to next round",
-              message: "Interval Error",
-            });
-          }
-        };
-        if (intervals[keyAsset.id] && intervals[keyAsset.id].data.round < intervals[keyAsset.id].data.numOfRounds) {
-          nextRound();
+          return { success: true, startTime };
+        } catch (err) {
+          return errorHandler({
+            err,
+            functionName: "Cannot go to next round",
+            message: "Interval Error",
+          });
         }
-      },
-      (60 * minutes + seconds + 10) * 1000,
-    );
+      };
 
-    intervals[keyAsset.id].interval = interval;
-  }
+      const gatherTopis = async () => {
+        const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
+        await moveToLobby(visitorsObj);
+      };
+
+      if (intervals[keyAsset.id] && intervals[keyAsset.id].data.round < intervals[keyAsset.id].data.numOfRounds) {
+        nextRound();
+      } else if (
+        intervals[keyAsset.id] &&
+        intervals[keyAsset.id].data.round === intervals[keyAsset.id].data.numOfRounds
+      ) {
+        gatherTopis();
+      }
+    },
+    (60 * minutes + seconds + 10) * 1000,
+  );
+
+  intervals[keyAsset.id].interval = interval;
 
   try {
     const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
