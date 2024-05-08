@@ -14,6 +14,7 @@ import GetDataObject from "./controllers/session/GetDataObject.js";
 import { isAdmin } from "./middleware/isAdmin.js";
 import handleSetBreakoutConfig from "./controllers/session/handleSetBreakoutConfig.js";
 import handleResetSession from "./controllers/session/handleResetSession.js";
+import GetParticipantsInZone from "./controllers/session/GetParticipantsInZone.js";
 
 const router = express.Router();
 
@@ -51,6 +52,7 @@ router.put("/world/data-object", handleUpdateWorldDataObject);
 router.get("/is-admin", isAdminCheck);
 
 router.get("/data-object", GetDataObject);
+router.get("/get-participants", isAdmin, GetParticipantsInZone);
 router.post("/set-config", isAdmin, handleSetBreakoutConfig);
 router.post("/reset", isAdmin, handleResetSession);
 

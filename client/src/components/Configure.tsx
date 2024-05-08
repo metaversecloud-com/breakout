@@ -1,6 +1,6 @@
 import { GlobalDispatchContext, GlobalStateContext } from "@/context/GlobalContext";
-import { setBreakoutConfig } from "@/context/actions";
-import { InitialState, SET_BREAKOUT } from "@/context/types";
+import { getParticipants, setBreakoutConfig } from "@/context/actions";
+import { InitialState, SET_BREAKOUT, SET_PARTICIPANT } from "@/context/types";
 import React, { useContext, useState } from "react";
 
 const Configure: React.FC = () => {
@@ -10,6 +10,7 @@ const Configure: React.FC = () => {
 
   const [showModal, setShowModal] = useState(false);
   const [startLoading, setStartLoading] = useState(false);
+  const [getParticipantsLoading, setGetParticipantsLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     numOfGroups: 1,
@@ -55,14 +56,21 @@ const Configure: React.FC = () => {
     setStartLoading(false);
   };
 
+  const handleGetParticipants = async () => {
+    setGetParticipantsLoading(true);
+    const participants = await getParticipants(backendAPI!);
+    dispatch!({ type: SET_PARTICIPANT, payload: { participants } });
+    setGetParticipantsLoading(false);
+  };
+
   return (
     <>
       {/* <AdminControls /> */}
       <div className="flex flex-col w-full">
         <div className="flex w-full !my-8 items-center justify-between">
           <h4 className="h4 !font-semibold text-center">Configure Breakout</h4>
-          <button className="btn btn-enhanced !w-fit" onClick={() => location.reload()}>
-            Refresh
+          <button disabled={getParticipantsLoading} className="btn btn-enhanced !w-fit" onClick={handleGetParticipants}>
+            {getParticipantsLoading ? "Loading..." : "Refresh"}
           </button>
         </div>
         <div className="flex flex-col w-full">

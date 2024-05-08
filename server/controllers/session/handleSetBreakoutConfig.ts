@@ -32,7 +32,7 @@ setInterval(() => {
   for (const key in intervals) {
     if (
       intervals[key].data.startTime +
-        (intervals[key].data.secondsPerRound + 0) * 1000 * intervals[key].data.numOfRounds <
+        (intervals[key].data.secondsPerRound + 10) * 1000 * intervals[key].data.numOfRounds <
       Date.now()
     ) {
       endBreakout(key);
@@ -111,14 +111,36 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     return data.allMatches;
   };
 
+  const openIframeForVisitors = async (visitors: { [key: string]: Visitor }, droppedAssetId: string) => {
+    if (process.env.NODE_ENV === "development") {
+      return;
+    }
+
+    const promises: Promise<any>[] = [];
+    const visitorsArr = Object.values(visitors);
+    visitorsArr.forEach((visitor) => {
+      promises.push(
+        visitor.openIframe({
+          droppedAssetId,
+          link: process.env.APP_URL,
+          shouldOpenInDrawer: true,
+          title: "Breakout",
+        }),
+      );
+    });
+    await Promise.all(promises);
+  };
+
   const placeVisitors = async (
     matches: string[][],
     visitors: {
       [key: string]: Visitor;
     },
-    droppedAssetId: string,
     participants: string[],
   ) => {
+    if (!intervals[assetId]) {
+      return;
+    }
     const privateZoneCoordinates = privateZones.map((zone: DroppedAsset) => [zone.position!.x, zone.position!.y]);
     const promises: Promise<any>[] = [];
 
@@ -127,7 +149,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
         privateZones[idx].updatePrivateZone({
           isPrivateZone: true,
           isPrivateZoneChatDisabled: false,
-          privateZoneUserCap: Math.floor(participants.length / intervals[assetId].data.numOfGroups),
+          privateZoneUserCap: Math.floor(participants.length / intervals[assetId].data.numOfGroups) + 1,
         }),
       );
       match.forEach((profileId) => {
@@ -147,16 +169,6 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             y: privateZoneCoordinates[idx][1] + offsetY,
           }),
         );
-        if (process.env.NODE_ENV !== "development") {
-          promises.push(
-            visitor!.openIframe({
-              droppedAssetId,
-              link: process.env.APP_URL,
-              shouldOpenInDrawer: true,
-              title: "Breakout",
-            }),
-          );
-        }
       });
     });
     await Promise.all(promises);
@@ -175,6 +187,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             const participants = Object.values(visitorsObj).map((visitor) => visitor.profileId) as string[];
 
             const matches = getMatches(false, keyAsset.id, participants);
+
             await Promise.all([
               keyAsset.updateDataObject(
                 {
@@ -193,8 +206,12 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
                   },
                 },
               ),
-              placeVisitors(matches, visitorsObj, keyAsset.id, participants),
+              openIframeForVisitors(visitorsObj, keyAsset.id),
             ]);
+
+            setTimeout(() => {
+              placeVisitors(matches, visitorsObj, participants);
+            }, 9000);
 
             return { success: true, startTime };
           } catch (err) {
@@ -209,7 +226,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           nextRound();
         }
       },
-      (60 * minutes + seconds) * 1000,
+      (60 * minutes + seconds + 10) * 1000,
     );
 
     intervals[keyAsset.id].interval = interval;
@@ -238,8 +255,13 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           },
         },
       ),
-      placeVisitors(matches, visitors, keyAsset.id, participants),
+      openIframeForVisitors(visitors, keyAsset.id),
     ]);
+
+    setTimeout(() => {
+      placeVisitors(matches, visitors, participants);
+    }, 9000);
+
     return res.json({ success: true, startTime });
   } catch (err) {
     return errorHandler({

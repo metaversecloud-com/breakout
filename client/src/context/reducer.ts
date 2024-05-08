@@ -1,4 +1,4 @@
-import { ActionType, InitialState, SET_BACKEND_API, SET_INTERACTIVE_PARAMS, SET_INIT, SET_BREAKOUT, RESET_BREAKOUT } from "./types";
+import { ActionType, InitialState, SET_BACKEND_API, SET_INTERACTIVE_PARAMS, SET_INIT, SET_BREAKOUT, RESET_BREAKOUT, SET_PARTICIPANT } from "./types";
 
 const globalReducer = (state: InitialState, action: ActionType) => {
   const { type, payload } = action;
@@ -47,6 +47,14 @@ const globalReducer = (state: InitialState, action: ActionType) => {
           secondsPerRound: 0,
           startTime: 0,
           status: "waiting",
+        },
+      };
+    case SET_PARTICIPANT:
+      return {
+        ...state,
+        sessionData: {
+          ...state.sessionData,
+          participants: payload.participants,
         },
       };
     default: {

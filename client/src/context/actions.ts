@@ -29,6 +29,16 @@ const fetchDataObject = async (backendAPI: AxiosInstance) => {
   }
 };
 
+const getParticipants = async (backendAPI: AxiosInstance) => {
+  try {
+    const result = await backendAPI.get("/get-participants");
+    return result.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+};
+
 const setBreakoutConfig = async (
   backendAPI: AxiosInstance,
   data: {
@@ -58,4 +68,4 @@ const endBreakout = async (backendAPI: AxiosInstance) => {
   }
 }
 
-export { checkIsAdmin, checkInteractiveCredentials, fetchDataObject, setBreakoutConfig, endBreakout };
+export { checkIsAdmin, checkInteractiveCredentials, fetchDataObject, setBreakoutConfig, endBreakout, getParticipants };
