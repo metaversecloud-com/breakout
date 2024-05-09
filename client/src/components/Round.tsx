@@ -2,6 +2,8 @@ import { GlobalStateContext } from "@/context/GlobalContext";
 import { InitialState } from "@/context/types";
 import React, { useContext, useEffect, useState } from "react";
 
+const countdownInit = 20;
+
 const Round: React.FC = () => {
   const { sessionData } = useContext(GlobalStateContext) as InitialState;
   const [isCountdownPeriod, setIsCountdownPeriod] = useState(false);
@@ -9,7 +11,7 @@ const Round: React.FC = () => {
   const roundStartTimes = sessionData?.numOfRounds
     ? Array.from(
         { length: sessionData.numOfRounds + 1 },
-        (_, i) => Math.floor(sessionData.startTime / 1000) + (sessionData.secondsPerRound + 10) * i,
+        (_, i) => Math.floor(sessionData.startTime / 1000) + (sessionData.secondsPerRound + countdownInit) * i,
       )
     : [];
   const [roundNum, setRoundNum] = useState(() => {
@@ -17,7 +19,7 @@ const Round: React.FC = () => {
     return roundStartTimes.findIndex((time) => time > now);
   });
 
-  const [countdown, setCountdown] = useState(10);
+  const [countdown, setCountdown] = useState(countdownInit);
 
   const calculateTimeLeft = () => {
     const now = Math.floor(Date.now() / 1000);
@@ -49,7 +51,7 @@ const Round: React.FC = () => {
           if (roundNum < sessionData.numOfRounds) {
             if (timeLeft === 1) {
               setIsCountdownPeriod(true);
-              setCountdown(10);
+              setCountdown(countdownInit);
               setRoundNum(roundNum + 1);
             }
             setTimeLeft(calculateTimeLeft());
@@ -62,7 +64,7 @@ const Round: React.FC = () => {
           console.log("CLEARING INTERVAL");
           clearInterval(timer);
         },
-        sessionData.startTime + (sessionData.secondsPerRound + 10) * 1000 * sessionData.numOfRounds,
+        sessionData.startTime + (sessionData.secondsPerRound + countdownInit) * 1000 * sessionData.numOfRounds,
       );
 
       return () => {

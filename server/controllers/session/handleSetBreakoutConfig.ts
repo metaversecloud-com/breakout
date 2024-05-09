@@ -5,10 +5,11 @@ import { getDroppedAssetsBySceneDropId } from "../../utils/droppedAssets/getDrop
 import { WorldActivity, errorHandler, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 
-const intervals: Record<
+const breakouts: Record<
   string,
   {
     interval: NodeJS.Timeout | null;
+    timeout: NodeJS.Timeout | null;
     data: {
       round: number;
       startTime: number;
@@ -21,18 +22,26 @@ const intervals: Record<
 > = {};
 
 export const endBreakout = (key: string) => {
-  if (intervals[key]) {
-    clearInterval(intervals[key].interval!);
-    delete intervals[key];
+  if (breakouts[key] && breakouts[key].timeout) {
+    clearTimeout(breakouts[key].timeout as NodeJS.Timeout);
+  }
+  if (breakouts[key] && breakouts[key].interval) {
+    clearInterval(breakouts[key].interval as NodeJS.Timeout);
+  }
+
+  if (breakouts[key]) {
+    delete breakouts[key];
     console.log(`Breakout ${key} is over!`);
   }
 };
 
+const countdown = 20;
+
 setInterval(() => {
-  for (const key in intervals) {
+  for (const key in breakouts) {
     if (
-      intervals[key].data.startTime +
-        (intervals[key].data.secondsPerRound + 10) * 1000 * intervals[key].data.numOfRounds +
+      breakouts[key].data.startTime +
+        (breakouts[key].data.secondsPerRound + countdown) * 1000 * breakouts[key].data.numOfRounds +
         5000 <
       Date.now()
     ) {
@@ -83,8 +92,9 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const lockId = `${keyAsset.id}_${timeFactor}`;
   const startTime = Date.now();
 
-  intervals[keyAsset.id] = {
+  breakouts[keyAsset.id] = {
     interval: null,
+    timeout: null,
     data: {
       round: 1,
       startTime,
@@ -96,22 +106,28 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   };
 
   const getMatches = (init: boolean, assetId: string, participants: string[]) => {
-    if (init) {
-      participants.forEach((el) => {
-        intervals[assetId].data.matchesObj[el] = [];
-      });
-    }
+    participants?.forEach((el) => {
+      if (init) {
+        breakouts[assetId].data.matchesObj[el] = [];
+      } else if (!breakouts[assetId].data.matchesObj[el]) {
+        breakouts[assetId].data.matchesObj[el] = [];
+      }
+    });
     const allCombinations = getCombinations(
       participants,
-      Math.floor(participants.length / intervals[assetId].data.numOfGroups),
+      Math.max(
+        (participants.length - (participants.length % breakouts[assetId].data.numOfGroups)) /
+          breakouts[assetId].data.numOfGroups,
+        2,
+      ),
     );
     const data = match(
       allCombinations,
-      intervals[assetId].data.round,
+      breakouts[assetId].data.round,
       participants,
-      intervals[assetId].data.matchesObj,
+      breakouts[assetId].data.matchesObj,
     );
-    intervals[assetId].data.matchesObj = data.matchesObj;
+    breakouts[assetId].data.matchesObj = data.matchesObj;
     return data.allMatches;
   };
 
@@ -122,17 +138,28 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
 
     const promises: Promise<any>[] = [];
     const visitorsArr = Object.values(visitors);
-    visitorsArr.forEach((visitor) => {
-      promises.push(
-        visitor.openIframe({
-          droppedAssetId,
-          link: process.env.APP_URL,
-          shouldOpenInDrawer: true,
-          title: "Breakout",
-        }),
-      );
-    });
-    await Promise.all(promises);
+    if (visitorsArr && visitorsArr.length > 0) {
+      visitorsArr.forEach((visitor) => {
+        promises.push(
+          visitor.openIframe({
+            droppedAssetId,
+            link: process.env.APP_URL,
+            shouldOpenInDrawer: true,
+            title: "Breakout",
+          }),
+        );
+      });
+    }
+    try {
+      await Promise.all(promises);
+    } catch (err) {
+      debugger;
+      return errorHandler({
+        err,
+        functionName: "Cannot open iframes",
+        message: "Error opening Iframes",
+      });
+    }
   };
 
   const placeVisitors = async (
@@ -142,40 +169,53 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     },
     participants: string[],
   ) => {
-    if (!intervals[assetId]) {
+    if (!breakouts[assetId]) {
       return;
     }
     const privateZoneCoordinates = privateZones.map((zone: DroppedAsset) => [zone.position!.x, zone.position!.y]);
     const promises: Promise<any>[] = [];
-
-    matches.forEach((match, idx) => {
-      promises.push(
-        privateZones[idx].updatePrivateZone({
-          isPrivateZone: true,
-          isPrivateZoneChatDisabled: false,
-          privateZoneUserCap: Math.floor(participants.length / intervals[assetId].data.numOfGroups) + 1,
-        }),
-      );
-      match.forEach((profileId) => {
-        const visitor = Object.values(visitors).find((visitor: Visitor) => visitor.profileId === profileId);
-        let offsetX = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
-        let offsetY = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
-        if (Math.random() < 0.5) {
-          offsetX *= -1;
-        }
-        if (Math.random() < 0.5) {
-          offsetY *= -1;
-        }
+    if (matches && matches.length > 0) {
+      matches.forEach((match, idx) => {
         promises.push(
-          visitor!.moveVisitor({
-            shouldTeleportVisitor: true,
-            x: privateZoneCoordinates[idx][0] + offsetX,
-            y: privateZoneCoordinates[idx][1] + offsetY,
+          privateZones[idx].updatePrivateZone({
+            isPrivateZone: true,
+            isPrivateZoneChatDisabled: false,
+            privateZoneUserCap:
+              (participants.length - (participants.length % breakouts[assetId].data.numOfGroups)) /
+                breakouts[assetId].data.numOfGroups +
+              1,
           }),
         );
+        match?.forEach((profileId) => {
+          const visitor = Object.values(visitors).find((visitor: Visitor) => visitor.profileId === profileId);
+          let offsetX = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
+          let offsetY = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
+          if (Math.random() < 0.5) {
+            offsetX *= -1;
+          }
+          if (Math.random() < 0.5) {
+            offsetY *= -1;
+          }
+          promises.push(
+            visitor!.moveVisitor({
+              shouldTeleportVisitor: true,
+              x: privateZoneCoordinates[idx][0] + offsetX,
+              y: privateZoneCoordinates[idx][1] + offsetY,
+            }),
+          );
+        });
       });
-    });
-    await Promise.all(promises);
+    }
+    try {
+      await Promise.all(promises);
+    } catch (err) {
+      debugger;
+      return errorHandler({
+        err,
+        functionName: "Cannot move visitors",
+        message: "Visitors Error",
+      });
+    }
   };
 
   const moveToLobby = async (visitorsObj: { [key: string]: Visitor }) => {
@@ -193,7 +233,16 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
         }),
       );
     });
-    await Promise.all(promises);
+    try {
+      await Promise.all(promises);
+    } catch (err) {
+      debugger;
+      return errorHandler({
+        err,
+        functionName: "Cannot move visitors to lobby",
+        message: "Visitors Error",
+      });
+    }
   };
 
   const interval = setInterval(
@@ -201,13 +250,16 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       const nextRound = async () => {
         const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
         const lockId = `${keyAsset.id}_${timeFactor}`;
-        intervals[keyAsset.id].data.round += 1;
+        breakouts[keyAsset.id].data.round += 1;
 
         try {
           const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
           const participants = Object.values(visitorsObj).map((visitor) => visitor.profileId) as string[];
-
           const matches = getMatches(false, keyAsset.id, participants);
+
+          console.log(
+            `Round ${breakouts[keyAsset.id].data.round} started for ${keyAsset.id} with ${participants.length} participants`,
+          );
 
           await Promise.all([
             keyAsset.updateDataObject(
@@ -230,12 +282,17 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             openIframeForVisitors(visitorsObj, keyAsset.id),
           ]);
 
-          setTimeout(() => {
-            placeVisitors(matches, visitorsObj, participants);
-          }, 9000);
+          const timeout = setTimeout(
+            () => {
+              placeVisitors(matches, visitorsObj, participants);
+            },
+            (countdown - 1) * 1000,
+          );
+          breakouts[keyAsset.id].timeout = timeout;
 
           return { success: true, startTime };
         } catch (err) {
+          debugger;
           return errorHandler({
             err,
             functionName: "Cannot go to next round",
@@ -245,28 +302,41 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       };
 
       const gatherTopis = async () => {
-        const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
-        await moveToLobby(visitorsObj);
+        try {
+          const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
+          await moveToLobby(visitorsObj);
+        } catch (err) {
+          debugger;
+          return errorHandler({
+            err,
+            functionName: "Cannot gather Topis",
+            message: "Visitors Error",
+          });
+        }
       };
 
-      if (intervals[keyAsset.id] && intervals[keyAsset.id].data.round < intervals[keyAsset.id].data.numOfRounds) {
+      if (breakouts[keyAsset.id] && breakouts[keyAsset.id].data.round < breakouts[keyAsset.id].data.numOfRounds) {
         nextRound();
       } else if (
-        intervals[keyAsset.id] &&
-        intervals[keyAsset.id].data.round === intervals[keyAsset.id].data.numOfRounds
+        breakouts[keyAsset.id] &&
+        breakouts[keyAsset.id].data.round === breakouts[keyAsset.id].data.numOfRounds
       ) {
         gatherTopis();
       }
     },
-    (60 * minutes + seconds + 10) * 1000,
+    (60 * minutes + seconds + countdown) * 1000,
   );
 
-  intervals[keyAsset.id].interval = interval;
+  breakouts[keyAsset.id].interval = interval;
 
   try {
     const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
     const participants = Object.values(visitors).map((visitor) => visitor.profileId) as string[];
     const matches = getMatches(true, keyAsset.id, participants);
+
+    console.log(
+      `Round ${breakouts[keyAsset.id].data.round} started for ${keyAsset.id} with ${participants.length} participants`,
+    );
 
     await Promise.all([
       keyAsset.updateDataObject(
@@ -289,12 +359,17 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       openIframeForVisitors(visitors, keyAsset.id),
     ]);
 
-    setTimeout(() => {
-      placeVisitors(matches, visitors, participants);
-    }, 9000);
+    const timeout = setTimeout(
+      () => {
+        placeVisitors(matches, visitors, participants);
+      },
+      (countdown - 1) * 1000,
+    );
+    breakouts[keyAsset.id].timeout = timeout;
 
     return res.json({ success: true, startTime });
   } catch (err) {
+    debugger;
     return errorHandler({
       err,
       functionName: "handleSetBreakoutConfig",
