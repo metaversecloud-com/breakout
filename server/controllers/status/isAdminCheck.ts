@@ -1,11 +1,12 @@
 import { Credentials } from "../../types/index.js";
-import { getVisitor } from "../../utils/index.js";
+import { errorHandler, getVisitor } from "../../utils/index.js";
 import { Request, Response } from "express";
 
 export default async function isAdminCheck(req: Request, res: Response) {
   try {
-    const { interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as Credentials;
-    const visitor = await getVisitor({ interactivePublicKey, interactiveNonce, urlSlug, visitorId });
+    const { interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as unknown as Credentials;
+    const credentials = { interactivePublicKey, interactiveNonce, urlSlug, visitorId } as Credentials;
+    const visitor = await getVisitor(credentials);
 
     if (!visitor) {
       return res.status(404).json({ message: "Visitor not found" });
@@ -14,8 +15,13 @@ export default async function isAdminCheck(req: Request, res: Response) {
     } else {
       return res.status(200).json({ isAdmin: false });
     }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ error: err.message });
+  } catch (error: any) {
+    return errorHandler({
+      error,
+      functionName: "GetParticipantsInZone",
+      message: "Error getting Participants",
+      req,
+      res,
+    });
   }
 }

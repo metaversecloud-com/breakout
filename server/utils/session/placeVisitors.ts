@@ -52,10 +52,10 @@ export default async function placeVisitors(
   console.log(`Placing ${participants.length} participants into ${matches.length} groups for ${assetId}`);
   try {
     await Promise.all(promises);
-  } catch (err) {
+  } catch (error) {
     debugger;
     return errorHandler({
-      err,
+      error,
       functionName: "Cannot move visitors",
       message: "Visitors Error",
     });

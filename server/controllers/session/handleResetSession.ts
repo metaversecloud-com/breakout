@@ -6,7 +6,7 @@ import { endBreakout } from "./handleSetBreakoutConfig.js";
 export default async function handleResetSession(req: Request, res: Response) {
   const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as unknown as Credentials;
 
-  const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId };
+  const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId } as Credentials;
   const worldActivity = WorldActivity.create(urlSlug, {
     credentials: {
       interactiveNonce,
@@ -37,9 +37,9 @@ export default async function handleResetSession(req: Request, res: Response) {
       success: true,
       dataObject: { ...defaultDataObject, landmarkZoneId: keyAsset.dataObject.landmarkZoneId, participants },
     });
-  } catch (err) {
+  } catch (error) {
     return errorHandler({
-      err,
+      error,
       functionName: "handleResetSession",
       message: "Error resetting breakout",
       req,

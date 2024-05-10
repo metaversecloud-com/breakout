@@ -13,7 +13,7 @@ export default async function openIframeForVisitors(visitors: { [key: string]: V
       promises.push(
         visitor.openIframe({
           droppedAssetId,
-          link: process.env.APP_URL,
+          link: process.env.APP_URL!,
           shouldOpenInDrawer: true,
           title: "Breakout",
         }),
@@ -23,10 +23,10 @@ export default async function openIframeForVisitors(visitors: { [key: string]: V
   console.log(`Opening iframes for ${visitorsArr.length} visitors in ${droppedAssetId}`);
   try {
     await Promise.all(promises);
-  } catch (err) {
+  } catch (error: any) {
     debugger;
     return errorHandler({
-      err,
+      error,
       functionName: "Cannot open iframes",
       message: "Error opening Iframes",
     });

@@ -1,3 +1,4 @@
+import { IDroppedAsset } from "../../types/DroppedAssetInterface.js";
 import { Credentials } from "../../types/index.js";
 import { errorHandler } from "../errorHandler.js";
 import { DroppedAsset } from "../topiaInit.js";
@@ -7,7 +8,7 @@ export const getDroppedAsset = async (credentials: Credentials) => {
   try {
     const { assetId, urlSlug, sceneDropId } = credentials;
 
-    const droppedAsset = await DroppedAsset.get(assetId, urlSlug, { credentials });
+    const droppedAsset = await DroppedAsset.get(assetId, urlSlug, { credentials }) as IDroppedAsset;
 
     if (!droppedAsset) throw "Dropped asset not found";
 

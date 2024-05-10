@@ -1,4 +1,5 @@
 import { Credentials } from "../../types/Credentials.js";
+import { IDroppedAsset } from "../../types/DroppedAssetInterface.js";
 import { World, errorHandler } from "../index.js";
 
 export const getDroppedAssetsBySceneDropId = async (
@@ -20,7 +21,7 @@ export const getDroppedAssetsBySceneDropId = async (
     const droppedAssets = await world.fetchDroppedAssetsBySceneDropId({
       sceneDropId,
       uniqueName,
-    });
+    }) as IDroppedAsset[];
 
     if (droppedAssets.length > 1) {
       if (uniqueName) {

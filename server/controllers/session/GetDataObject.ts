@@ -6,7 +6,7 @@ export default async function GetDataObject(req: Request, res: Response) {
   try {
     const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId } =
       req.query as unknown as Credentials;
-    const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId };
+    const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId } as Credentials;
 
     const worldActivity = WorldActivity.create(urlSlug, {
       credentials: {
@@ -28,9 +28,9 @@ export default async function GetDataObject(req: Request, res: Response) {
     if (keyAsset) {
       return res.status(200).json(keyAsset.dataObject);
     }
-  } catch (err: any) {
+  } catch (error: any) {
     return errorHandler({
-      err,
+      error,
       functionName: "GetDataObject",
       message: "Error getting DataObject",
       req,

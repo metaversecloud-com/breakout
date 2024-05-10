@@ -139,10 +139,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           ]);
 
           return { success: true, startTime };
-        } catch (err) {
+        } catch (error) {
           debugger;
           return errorHandler({
-            err,
+            error,
             functionName: "Cannot go to next round",
             message: "Interval Error",
           });
@@ -153,10 +153,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
         try {
           const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
           await moveToLobby(visitorsObj, landMarkZone, keyAsset.id);
-        } catch (err) {
+        } catch (error) {
           debugger;
           return errorHandler({
-            err,
+            error,
             functionName: "Cannot gather Topis",
             message: "Visitors Error",
           });
@@ -226,10 +226,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     );
 
     return res.json({ success: true, startTime });
-  } catch (err) {
+  } catch (error) {
     debugger;
     return errorHandler({
-      err,
+      error,
       functionName: "handleSetBreakoutConfig",
       message: "Error setting breakout",
       req,
