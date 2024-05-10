@@ -24,7 +24,7 @@ export default async function handleResetSession(req: Request, res: Response) {
 
   try {
     await keyAsset.updateDataObject(
-      { ...defaultDataObject, landMarkZoneId: keyAsset.dataObject.landMarkZoneId },
+      { ...defaultDataObject, landmarkZoneId: keyAsset.dataObject.landmarkZoneId },
       {
         lock: {
           lockId,
@@ -35,7 +35,7 @@ export default async function handleResetSession(req: Request, res: Response) {
     endBreakout(keyAsset.id);
     return res.json({
       success: true,
-      dataObject: { ...defaultDataObject, landMarkZoneId: keyAsset.dataObject.landMarkZoneId, participants },
+      dataObject: { ...defaultDataObject, landmarkZoneId: keyAsset.dataObject.landmarkZoneId, participants },
     });
   } catch (err) {
     return errorHandler({

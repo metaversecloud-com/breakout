@@ -91,6 +91,9 @@ const match = (
       temp = difference(temp, allPossibleForCurrent);
     });
     allMatches.push(match);
+    if (allMatches.length === 16) {
+      break;
+    }
   }
 
   return { allMatches, matchesObj };

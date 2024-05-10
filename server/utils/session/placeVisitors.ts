@@ -31,8 +31,8 @@ export default async function placeVisitors(
       );
       match.forEach((profileId) => {
         const visitor = Object.values(visitors).find((visitor: Visitor) => visitor.profileId === profileId);
-        let offsetX = Math.floor(Math.random() * (110 - 50 + 1)) + Math.floor(Math.random() * (110 - 50 + 1));
-        let offsetY = Math.floor(Math.random() * (110 - 50 + 1)) + Math.floor(Math.random() * (110 - 50 + 1));
+        let offsetX = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
+        let offsetY = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
         if (Math.random() < 0.5) {
           offsetX *= -1;
         }

@@ -22,11 +22,11 @@ export const initializeBreakoutSession = async (
       getDroppedAssetsBySceneDropId(credentials, sceneDropId),
       droppedAsset.fetchDataObject(),
     ]);
-    const landMarkZoneId = allAssets.filter((asset) => asset.isLandmarkZoneEnabled)[0]?.id;
+    const landmarkZoneId = allAssets.filter((asset) => asset.isLandmarkZoneEnabled)[0]?.id;
     if (!droppedAsset?.dataObject?.participants) {
       // adding a lockId and releaseLock will prevent race conditions and ensure the data object is being updated only once until either the time has passed or the operation is complete
       const lockId = `${droppedAsset.id}-${new Date(Math.round(new Date().getTime() / 60000) * 60000)}`;
-      await droppedAsset.setDataObject({ ...defaultDataObject, landMarkZoneId }, { lock: { lockId } });
+      await droppedAsset.setDataObject({ ...defaultDataObject, landmarkZoneId }, { lock: { lockId } });
     }
 
     return;

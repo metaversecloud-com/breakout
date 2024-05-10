@@ -18,7 +18,7 @@ export default async function GetParticipantsInZone(req: Request, res: Response)
 
     const keyAsset = await getDroppedAsset(credentials);
     const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
-
+    
     const participants = Object.values(visitors).map(({ profileId, username }) => {
       return {
         profileId,

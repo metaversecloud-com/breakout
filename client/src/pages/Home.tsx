@@ -49,9 +49,18 @@ const Home: React.FC = () => {
               <div className="my-12 w-full">
                 <Round />
               </div>
-              <button onClick={handleEnd} disabled={endLoading} type="button" className="btn btn-enhanced mb-2 mt-8">
-                {endLoading ? "Ending..." : "End"}
-              </button>{" "}
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={handleEnd}
+                    disabled={endLoading}
+                    type="button"
+                    className="btn btn-enhanced mb-2 mt-8"
+                  >
+                    {endLoading ? "Ending..." : "End"}
+                  </button>
+                </>
+              )}
             </div>
           )}
         </>
