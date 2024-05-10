@@ -1,11 +1,5 @@
 import express from "express";
 import {
-  handleDropAsset,
-  handleGetDroppedAsset,
-  handleGetVisitor,
-  handleRemoveDroppedAssetsByUniqueName,
-  handleGetWorldDetails,
-  handleUpdateWorldDataObject,
   handleCheckInteractiveCredentials,
 } from "./controllers/index.js";
 import { getVersion } from "./utils/getVersion.js";
@@ -36,18 +30,6 @@ router.get("/system/health", (req, res) => {
 });
 
 router.get("/system/interactive-credentials", handleCheckInteractiveCredentials);
-
-// Dropped Assets
-router.post("/dropped-asset", handleDropAsset);
-router.get("/dropped-asset", handleGetDroppedAsset);
-router.post("/remove-dropped-assets", handleRemoveDroppedAssetsByUniqueName);
-
-// Visitor
-router.get("/visitor", handleGetVisitor);
-
-// World
-router.get("/world", handleGetWorldDetails);
-router.put("/world/data-object", handleUpdateWorldDataObject);
 
 router.get("/is-admin", isAdminCheck);
 
