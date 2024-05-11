@@ -2,7 +2,7 @@ import { DroppedAsset } from "@rtsdk/topia";
 
 export interface BreakoutDataObject {
   participants: string[];
-  matches: string[];
+  // matches: string[];
   numOfRounds: number;
   secondsPerRound: number;
   startTime: number;

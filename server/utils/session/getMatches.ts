@@ -2,7 +2,7 @@ import { Breakouts } from "../../controllers/session/handleSetBreakoutConfig.js"
 import { getCombinations, match } from "../arrangement.js";
 
 export default function getMatches(init: boolean, assetId: string, participants: string[], breakouts: Breakouts) {
-  participants?.forEach((el) => {
+  participants.forEach((el) => {
     if (init || !breakouts[assetId].data.matchesObj[el]) {
       breakouts[assetId].data.matchesObj[el] = [];
     }

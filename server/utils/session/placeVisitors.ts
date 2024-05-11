@@ -29,7 +29,7 @@ export default async function placeVisitors(
             1,
         }),
       );
-      match.forEach((profileId) => {
+      match?.forEach((profileId) => {
         const visitor = Object.values(visitors).find((visitor: Visitor) => visitor.profileId === profileId);
         let offsetX = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
         let offsetY = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));

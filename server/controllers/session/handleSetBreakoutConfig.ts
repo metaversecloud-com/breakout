@@ -96,8 +96,8 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const interval = setInterval(
     () => {
       const nextRound = async () => {
-        const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
-        const lockId = `${keyAsset.id}_${timeFactor}`;
+        // const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
+        // const lockId = `${keyAsset.id}_${timeFactor}`;
         breakouts[keyAsset.id].data.round += 1;
 
         try {
@@ -117,26 +117,22 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           );
           breakouts[keyAsset.id].timeouts.push(timeout);
 
-          await Promise.all([
-            keyAsset.updateDataObject(
-              {
-                ...keyAsset.dataObject,
-                matches: JSON.stringify(matches),
-                participants,
-                startTime,
-                secondsPerRound: minutes * 60 + seconds,
-                numOfRounds,
-                status: "active",
-              },
-              {
-                lock: {
-                  lockId,
-                  releaseLock: false,
-                },
-              },
-            ),
-            openIframeForVisitors(visitorsObj, keyAsset.id),
-          ]);
+          // await Promise.all([
+          //   keyAsset.updateDataObject(
+          //     {
+          //       ...keyAsset.dataObject,
+          //       matches: JSON.stringify(matches),
+          //     },
+          //     {
+          //       lock: {
+          //         lockId,
+          //         releaseLock: false,
+          //       },
+          //     },
+          //   ),
+          //   openIframeForVisitors(visitorsObj, keyAsset.id),
+          // ]);
+          await openIframeForVisitors(visitorsObj, keyAsset.id);
 
           return { success: true, startTime };
         } catch (error) {
@@ -204,7 +200,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       keyAsset.updateDataObject(
         {
           ...keyAsset.dataObject,
-          matches: JSON.stringify(matches),
+          // matches: JSON.stringify(matches),
           participants,
           startTime,
           secondsPerRound: minutes * 60 + seconds,

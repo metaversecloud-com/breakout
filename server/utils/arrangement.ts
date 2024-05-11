@@ -85,7 +85,7 @@ const match = (
     temp = difference(temp, currentAllPossible);
     const randomIndex = Math.floor(Math.random() * currentAllPossible.length);
     const match = currentAllPossible.splice(randomIndex, 1)[0];
-    match.forEach((el) => {
+    match?.forEach((el) => {
       matchesObj[el].push(match);
       const allPossibleForCurrent = temp.filter((m) => m.includes(el));
       temp = difference(temp, allPossibleForCurrent);

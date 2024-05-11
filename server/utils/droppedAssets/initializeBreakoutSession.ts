@@ -6,7 +6,7 @@ import { getDroppedAssetsBySceneDropId } from "./getDroppedAssetsBySceneDropId.j
 
 export const defaultDataObject: BreakoutDataObject = {
   participants: [],
-  matches: [],
+  // matches: [],
   numOfRounds: 0,
   secondsPerRound: 0,
   startTime: 0,
