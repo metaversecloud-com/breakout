@@ -4,6 +4,7 @@ export interface BreakoutDataObject {
   participants: string[];
   // matches: string[];
   numOfRounds: number;
+  landmarkZoneId: string;
   secondsPerRound: number;
   startTime: number;
   status: "waiting" | "active";

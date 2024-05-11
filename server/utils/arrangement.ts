@@ -82,6 +82,9 @@ const match = (
         currentAllPossible = [...allPossibleFilter3];
       }
     }
+    if (currentAllPossible.length === 0) {
+      continue;
+    }
     temp = difference(temp, currentAllPossible);
     const randomIndex = Math.floor(Math.random() * currentAllPossible.length);
     const match = currentAllPossible.splice(randomIndex, 1)[0];

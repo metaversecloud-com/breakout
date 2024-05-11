@@ -7,6 +7,7 @@ import moveToLobby from "../../utils/session/moveToLobby.js";
 import getMatches from "../../utils/session/getMatches.js";
 import placeVisitors from "../../utils/session/placeVisitors.js";
 import openIframeForVisitors from "../../utils/session/openIframeForVisitors.js";
+import { IDroppedAsset } from "../../types/DroppedAssetInterface.js";
 
 export type Breakouts = Record<
   string,
@@ -69,7 +70,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     sceneDropId,
   } as Credentials;
 
-  const [keyAsset, breakoutScene] = await Promise.all([
+  const [keyAsset, breakoutScene]: [IDroppedAsset, DroppedAsset[]] = await Promise.all([
     getDroppedAsset(credentials),
     getDroppedAssetsBySceneDropId(credentials, sceneDropId),
   ]);
@@ -90,37 +91,37 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   });
 
   const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
-  const lockId = `${keyAsset.id}_${timeFactor}`;
+  const lockId = `${keyAsset.id!}_${timeFactor}`;
   const startTime = Date.now();
 
   const interval = setInterval(
     () => {
       const nextRound = async () => {
         // const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
-        // const lockId = `${keyAsset.id}_${timeFactor}`;
-        breakouts[keyAsset.id].data.round += 1;
+        // const lockId = `${keyAsset.id!}_${timeFactor}`;
+        breakouts[keyAsset.id!].data.round += 1;
 
         try {
-          const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
+          const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
           const participants = Object.values(visitorsObj).map((visitor) => visitor.profileId) as string[];
-          const matches = getMatches(false, keyAsset.id, participants, breakouts);
+          const matches = getMatches(false, keyAsset.id!, participants, breakouts);
 
           console.log(
-            `Round ${breakouts[keyAsset.id].data.round} started for ${keyAsset.id} with ${participants.length} participants`,
+            `Round ${breakouts[keyAsset.id!].data.round} started for ${keyAsset.id!} with ${participants.length} participants`,
           );
 
           const timeout = setTimeout(
             () => {
-              placeVisitors(matches, visitorsObj, participants, keyAsset.id, breakouts, privateZones);
+              placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
             },
             (countdown - 1) * 1000,
           );
-          breakouts[keyAsset.id].timeouts.push(timeout);
+          breakouts[keyAsset.id!].timeouts.push(timeout);
 
           // await Promise.all([
           //   keyAsset.updateDataObject(
           //     {
-          //       ...keyAsset.dataObject,
+          //       ...keyAsset.dataObject!,
           //       matches: JSON.stringify(matches),
           //     },
           //     {
@@ -130,9 +131,9 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           //       },
           //     },
           //   ),
-          //   openIframeForVisitors(visitorsObj, keyAsset.id),
+          //   openIframeForVisitors(visitorsObj, keyAsset.id!),
           // ]);
-          await openIframeForVisitors(visitorsObj, keyAsset.id);
+          await openIframeForVisitors(visitorsObj, keyAsset.id!);
 
           return { success: true, startTime };
         } catch (error) {
@@ -147,8 +148,8 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
 
       const gatherTopis = async () => {
         try {
-          const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
-          await moveToLobby(visitorsObj, landMarkZone, keyAsset.id);
+          const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+          await moveToLobby(visitorsObj, landMarkZone, keyAsset.id!);
         } catch (error) {
           debugger;
           return errorHandler({
@@ -159,11 +160,11 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
         }
       };
 
-      if (breakouts[keyAsset.id] && breakouts[keyAsset.id].data.round < breakouts[keyAsset.id].data.numOfRounds) {
+      if (breakouts[keyAsset.id!] && breakouts[keyAsset.id!].data.round < breakouts[keyAsset.id!].data.numOfRounds) {
         nextRound();
       } else if (
-        breakouts[keyAsset.id] &&
-        breakouts[keyAsset.id].data.round === breakouts[keyAsset.id].data.numOfRounds
+        breakouts[keyAsset.id!] &&
+        breakouts[keyAsset.id!].data.round === breakouts[keyAsset.id!].data.numOfRounds
       ) {
         gatherTopis();
       }
@@ -172,17 +173,17 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   );
 
   try {
-    const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
+    const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
     const participants = Object.values(visitors).map((visitor) => visitor.profileId) as string[];
 
     const timeout = setTimeout(
       () => {
-        placeVisitors(matches, visitors, participants, keyAsset.id, breakouts, privateZones);
+        placeVisitors(matches, visitors, participants, keyAsset.id!, breakouts, privateZones);
       },
       (countdown - 1) * 1000,
     );
 
-    breakouts[keyAsset.id] = {
+    breakouts[keyAsset.id!] = {
       interval: interval,
       timeouts: [timeout],
       data: {
@@ -194,12 +195,12 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
         matchesObj: {},
       },
     };
-    const matches = getMatches(true, keyAsset.id, participants, breakouts);
+    const matches = getMatches(true, keyAsset.id!, participants, breakouts);
 
     await Promise.all([
       keyAsset.updateDataObject(
         {
-          ...keyAsset.dataObject,
+          ...keyAsset.dataObject!,
           // matches: JSON.stringify(matches),
           participants,
           startTime,
@@ -214,11 +215,11 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           },
         },
       ),
-      openIframeForVisitors(visitors, keyAsset.id),
+      openIframeForVisitors(visitors, keyAsset.id!),
     ]);
 
     console.log(
-      `Round ${breakouts[keyAsset.id].data.round} started for ${keyAsset.id} with ${participants.length} participants`,
+      `Round ${breakouts[keyAsset.id!].data.round} started for ${keyAsset.id!} with ${participants.length} participants`,
     );
 
     return res.json({ success: true, startTime });
