@@ -61,4 +61,4 @@ jobs:
           
       - name: Publish
         run: |
-          aws ecs update-service --service change-me --force-new-deployment --cluster change-me
+          aws ecs update-service --service topia-dev-breakout0 --force-new-deployment --cluster topia-dev-sdk-apps
