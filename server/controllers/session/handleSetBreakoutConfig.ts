@@ -103,7 +103,14 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
 
         try {
           const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
-          const participants = Object.values(visitorsObj).map((visitor) => visitor.profileId) as string[];
+          const participants = Object.values(visitorsObj)
+            .filter((visitor) => {
+              if (!includeAdmins) {
+                return !visitor.isAdmin;
+              }
+              return true;
+            })
+            .map((visitor) => visitor.profileId) as string[];
           const matches = getMatches(false, keyAsset.id!, participants, breakouts);
 
           console.log(
@@ -173,12 +180,19 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   );
 
   try {
-    const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
-    const participants = Object.values(visitors).map((visitor) => visitor.profileId) as string[];
-
+    const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+    const participants = Object.values(visitorsObj)
+    .filter((visitor) => {
+      if (!includeAdmins) {
+        return !visitor.isAdmin;
+      }
+      return true;
+    })
+    .map((visitor) => visitor.profileId) as string[];
+    debugger;
     const timeout = setTimeout(
       () => {
-        placeVisitors(matches, visitors, participants, keyAsset.id!, breakouts, privateZones);
+        placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
       },
       (countdown - 1) * 1000,
     );

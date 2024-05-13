@@ -17,14 +17,14 @@ const Configure: React.FC = () => {
     numOfRounds: 1,
     minutes: 0,
     seconds: 0,
-    includeAdmins: false,
+    includeAdmins: true,
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value, checked } = e.target;
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: name === "includeAdmins" ? checked : value,
     });
   };
 
@@ -41,10 +41,10 @@ const Configure: React.FC = () => {
       type: SET_BREAKOUT,
       payload: {
         data: {
-          numOfGroups: parseInt(formData.numOfGroups),
-          numOfRounds: parseInt(formData.numOfRounds),
-          minutes: parseInt(formData.minutes),
-          seconds: parseInt(formData.seconds),
+          numOfGroups: formData.numOfGroups,
+          numOfRounds: formData.numOfRounds,
+          minutes: formData.minutes,
+          seconds: formData.seconds,
           includeAdmins: formData.includeAdmins,
           startTime,
           status: "active",
@@ -155,6 +155,24 @@ const Configure: React.FC = () => {
           <div className="modal">
             <h4 className="h4 capitalize">Confirmation</h4>
             <p className="p2">Are you sure you want to confirm these configurations?</p>
+
+            <div className="flex flex-col items-start justify-center">
+              <p className="p2">
+                <span className="font-semibold">Number of Participants:</span> {sessionData?.participants.length}
+              </p>
+              <p className="p2">
+                <span className="font-semibold">Number of Groups:</span> {formData.numOfGroups}
+              </p>
+              <p className="p2">
+                <span className="font-semibold">Number of Rounds:</span> {formData.numOfRounds}
+              </p>
+              <p className="p2">
+                <span className="font-semibold">Time per Round:</span> {formData.minutes} min {formData.seconds} sec
+              </p>
+              <p className="p2">
+                <span className="font-semibold">Include Admins:</span> {formData.includeAdmins ? "Yes" : "No"}
+              </p>
+            </div>
             <div className="actions">
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>
                 Close
