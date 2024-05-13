@@ -1,7 +1,5 @@
 import express from "express";
-import {
-  handleCheckInteractiveCredentials,
-} from "./controllers/index.js";
+import { handleCheckInteractiveCredentials } from "./controllers/index.js";
 import { getVersion } from "./utils/getVersion.js";
 import isAdminCheck from "./controllers/status/isAdminCheck.js";
 import GetDataObject from "./controllers/session/GetDataObject.js";
@@ -22,9 +20,10 @@ router.get("/system/health", (req, res) => {
     status: "OK",
     envs: {
       NODE_ENV: process.env.NODE_ENV,
-      INSTANCE_DOMAIN: process.env.INSTANCE_DOMAIN,
-      INTERACTIVE_KEY: process.env.INTERACTIVE_KEY,
-      S3_BUCKET: process.env.S3_BUCKET,
+      INSTANCE_DOMAIN: process.env.INSTANCE_DOMAIN ? process.env.INSTANCE_DOMAIN : "NOT SET",
+      INTERACTIVE_KEY: process.env.INTERACTIVE_KEY ? process.env.INTERACTIVE_KEY : "NOT SET",
+      INTERACTIVE_SECRET: process.env.INTERACTIVE_SECRET ? "SET" : "NOT SET",
+      APP_URL: process.env.APP_URL ? process.env.APP_URL : "NOT SET",
     },
   });
 });
