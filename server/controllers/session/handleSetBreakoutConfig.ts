@@ -229,7 +229,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           },
         },
       ),
-      openIframeForVisitors(visitors, keyAsset.id!),
+      openIframeForVisitors(visitorsObj, keyAsset.id!),
     ]);
 
     console.log(
