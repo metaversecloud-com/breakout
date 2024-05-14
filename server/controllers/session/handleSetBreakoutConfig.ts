@@ -97,8 +97,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const interval = setInterval(
     () => {
       const nextRound = async () => {
-        // const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
-        // const lockId = `${keyAsset.id!}_${timeFactor}`;
+
         breakouts[keyAsset.id!].data.round += 1;
 
         try {
@@ -125,21 +124,6 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           );
           breakouts[keyAsset.id!].timeouts.push(timeout);
 
-          // await Promise.all([
-          //   keyAsset.updateDataObject(
-          //     {
-          //       ...keyAsset.dataObject!,
-          //       matches: JSON.stringify(matches),
-          //     },
-          //     {
-          //       lock: {
-          //         lockId,
-          //         releaseLock: false,
-          //       },
-          //     },
-          //   ),
-          //   openIframeForVisitors(visitorsObj, keyAsset.id!),
-          // ]);
           await openIframeForVisitors(visitorsObj, keyAsset.id!);
 
           return { success: true, startTime };
@@ -149,6 +133,8 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             error,
             functionName: "Cannot go to next round",
             message: "Interval Error",
+            req,
+            res
           });
         }
       };
@@ -189,7 +175,6 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       return true;
     })
     .map((visitor) => visitor.profileId) as string[];
-    debugger;
     const timeout = setTimeout(
       () => {
         placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
@@ -215,7 +200,6 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       keyAsset.updateDataObject(
         {
           ...keyAsset.dataObject!,
-          // matches: JSON.stringify(matches),
           participants,
           startTime,
           secondsPerRound: minutes * 60 + seconds,

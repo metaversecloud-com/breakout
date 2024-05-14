@@ -52,7 +52,6 @@ const Configure: React.FC = () => {
       },
     });
 
-    // console.log("Values", { minutes, seconds, numberOfRounds, numberOfGroups, includeAdmins });
     setStartLoading(false);
   };
 

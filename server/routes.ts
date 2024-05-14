@@ -2,11 +2,11 @@ import express from "express";
 import { handleCheckInteractiveCredentials } from "./controllers/index.js";
 import { getVersion } from "./utils/getVersion.js";
 import isAdminCheck from "./controllers/status/isAdminCheck.js";
-import GetDataObject from "./controllers/session/GetDataObject.js";
+import handleGetDataObject from "./controllers/session/handleGetDataObject.js";
 import { isAdmin } from "./middleware/isAdmin.js";
 import handleSetBreakoutConfig from "./controllers/session/handleSetBreakoutConfig.js";
 import handleResetSession from "./controllers/session/handleResetSession.js";
-import GetParticipantsInZone from "./controllers/session/GetParticipantsInZone.js";
+import handleGetParticipantsInZone from "./controllers/session/handleGetParticipantsInZone.js";
 
 const router = express.Router();
 
@@ -33,8 +33,8 @@ router.get("/system/interactive-credentials", handleCheckInteractiveCredentials)
 
 router.get("/is-admin", isAdminCheck);
 
-router.get("/data-object", GetDataObject);
-router.get("/get-participants", isAdmin, GetParticipantsInZone);
+router.get("/data-object", handleGetDataObject);
+router.get("/get-participants", isAdmin, handleGetParticipantsInZone);
 router.post("/set-config", isAdmin, handleSetBreakoutConfig);
 router.post("/reset", isAdmin, handleResetSession);
 

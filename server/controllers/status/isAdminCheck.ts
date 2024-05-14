@@ -18,8 +18,8 @@ export default async function isAdminCheck(req: Request, res: Response) {
   } catch (error: any) {
     return errorHandler({
       error,
-      functionName: "GetParticipantsInZone",
-      message: "Error getting Participants",
+      functionName: "isAdminCheck",
+      message: "Error checking admin",
       req,
       res,
     });

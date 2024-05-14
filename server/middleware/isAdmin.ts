@@ -15,7 +15,7 @@ async function isAdmin(req: Request, res: Response, next: NextFunction) {
   const credentials = { interactivePublicKey, interactiveNonce, urlSlug, visitorId } as Credentials;
   const isAdmin = await checkIsAdmin(credentials);
   if (!isAdmin) {
-    return res.status(401).json({ message: "Unauthorized" });
+    return res.status(401).json({ message: "Unauthorized. User is not an admin." });
   }
   next();
 }

@@ -5,7 +5,6 @@ import { World, errorHandler } from "../index.js";
 export const getDroppedAssetsBySceneDropId = async (
   credentials: Credentials,
   sceneDropId: string,
-  uniqueName?: string,
 ) => {
   try {
     const { interactivePublicKey, interactiveNonce, urlSlug, visitorId } = credentials;
@@ -20,17 +19,9 @@ export const getDroppedAssetsBySceneDropId = async (
 
     const droppedAssets = await world.fetchDroppedAssetsBySceneDropId({
       sceneDropId,
-      uniqueName,
     }) as IDroppedAsset[];
 
-    if (droppedAssets.length > 1) {
-      if (uniqueName) {
-        return droppedAssets.find((asset) => asset.uniqueName === uniqueName);
-      }
-      return droppedAssets;
-    } else {
-      return droppedAssets[0];
-    }
+    return droppedAssets;
   } catch (error) {
     return errorHandler({
       error,

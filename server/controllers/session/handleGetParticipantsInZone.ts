@@ -2,7 +2,7 @@ import { Credentials } from "../../types/index.js";
 import { WorldActivity, errorHandler, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 
-export default async function GetParticipantsInZone(req: Request, res: Response) {
+export default async function handleGetParticipantsInZone(req: Request, res: Response) {
   try {
     const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId } =
       req.query as unknown as Credentials;
@@ -34,7 +34,7 @@ export default async function GetParticipantsInZone(req: Request, res: Response)
   } catch (error: any) {
     return errorHandler({
       error,
-      functionName: "GetParticipantsInZone",
+      functionName: "handleGetParticipantsInZone",
       message: "Error getting Participants",
       req,
       res,
