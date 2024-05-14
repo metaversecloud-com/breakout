@@ -61,6 +61,11 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const seconds = parseInt(req.body.seconds);
   const includeAdmins = req.body.includeAdmins;
 
+  if (60 * minutes + seconds < 10) {
+    console.log(`Invalid configuration for ${assetId}`);
+    return res.status(400).json({ message: "Invalid configuration" });
+  }
+
   const credentials = {
     assetId,
     interactivePublicKey,
@@ -97,11 +102,11 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const interval = setInterval(
     () => {
       const nextRound = async () => {
-
         breakouts[keyAsset.id!].data.round += 1;
 
         try {
           const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+
           const participants = Object.values(visitorsObj)
             .filter((visitor) => {
               if (!includeAdmins) {
@@ -110,6 +115,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               return true;
             })
             .map((visitor) => visitor.profileId) as string[];
+          if (participants.length < 2) {
+            console.log(`Not enough participants to continue the breakout ${keyAsset.id}`);
+            return;
+          }
           const matches = getMatches(false, keyAsset.id!, participants, breakouts);
 
           console.log(
@@ -134,7 +143,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             functionName: "Cannot go to next round",
             message: "Interval Error",
             req,
-            res
+            res,
           });
         }
       };
@@ -168,23 +177,20 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   try {
     const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
     const participants = Object.values(visitorsObj)
-    .filter((visitor) => {
-      if (!includeAdmins) {
-        return !visitor.isAdmin;
-      }
-      return true;
-    })
-    .map((visitor) => visitor.profileId) as string[];
-    const timeout = setTimeout(
-      () => {
-        placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
-      },
-      (countdown - 1) * 1000,
-    );
-
+      .filter((visitor) => {
+        if (!includeAdmins) {
+          return !visitor.isAdmin;
+        }
+        return true;
+      })
+      .map((visitor) => visitor.profileId) as string[];
+    if (participants.length < 2) {
+      console.log(`Not enough participants to start the breakout ${keyAsset.id}`);
+      return res.status(400).json({ message: "Not enough participants" });
+    }
     breakouts[keyAsset.id!] = {
       interval: interval,
-      timeouts: [timeout],
+      timeouts: [],
       data: {
         round: 1,
         startTime,
@@ -195,6 +201,14 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       },
     };
     const matches = getMatches(true, keyAsset.id!, participants, breakouts);
+
+    const timeout = setTimeout(
+      () => {
+        placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
+      },
+      (countdown - 1) * 1000,
+    );
+    breakouts[keyAsset.id!].timeouts.push(timeout);
 
     await Promise.all([
       keyAsset.updateDataObject(

@@ -36,21 +36,24 @@ const Configure: React.FC = () => {
   const handleSubmit = async () => {
     setStartLoading(true);
 
-    const { startTime } = await setBreakoutConfig(backendAPI!, formData);
-    dispatch!({
-      type: SET_BREAKOUT,
-      payload: {
-        data: {
-          numOfGroups: formData.numOfGroups,
-          numOfRounds: formData.numOfRounds,
-          minutes: formData.minutes,
-          seconds: formData.seconds,
-          includeAdmins: formData.includeAdmins,
-          startTime,
-          status: "active",
+    const res = await setBreakoutConfig(backendAPI!, formData);
+    if (res) {
+      const { startTime } = res;
+      dispatch!({
+        type: SET_BREAKOUT,
+        payload: {
+          data: {
+            numOfGroups: formData.numOfGroups,
+            numOfRounds: formData.numOfRounds,
+            minutes: formData.minutes,
+            seconds: formData.seconds,
+            includeAdmins: formData.includeAdmins,
+            startTime,
+            status: "active",
+          },
         },
-      },
-    });
+      });
+    }
 
     setStartLoading(false);
   };
