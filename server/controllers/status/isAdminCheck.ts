@@ -1,11 +1,11 @@
 import { Credentials } from "../../types/index.js";
-import { errorHandler, getVisitor } from "../../utils/index.js";
+import { errorHandler, getCredentials, getVisitor } from "../../utils/index.js";
 import { Request, Response } from "express";
 
 export default async function isAdminCheck(req: Request, res: Response) {
   try {
-    const { interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as unknown as Credentials;
-    const credentials = { interactivePublicKey, interactiveNonce, urlSlug, visitorId } as Credentials;
+    const credentials = getCredentials(req.query);
+
     const visitor = await getVisitor(credentials);
 
     if (!visitor) {

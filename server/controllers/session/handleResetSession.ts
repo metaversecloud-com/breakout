@@ -1,18 +1,16 @@
 import { Credentials } from "../../types/index.js";
-import { WorldActivity, defaultDataObject, errorHandler, getDroppedAsset } from "../../utils/index.js";
+import { WorldActivity, defaultDataObject, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 import { endBreakout } from "./handleSetBreakoutConfig.js";
 import closeIframeForVisitors from "../../utils/session/closeIframeForVisitors.js";
 
 export default async function handleResetSession(req: Request, res: Response) {
-  const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as unknown as Credentials;
-
-  const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId } as Credentials;
-  const worldActivity = WorldActivity.create(urlSlug, {
+  const credentials = getCredentials(req.query);
+  const worldActivity = WorldActivity.create(credentials.urlSlug, {
     credentials: {
-      interactiveNonce,
-      interactivePublicKey,
-      visitorId,
+      interactiveNonce: credentials.interactiveNonce,
+      interactivePublicKey: credentials.interactivePublicKey,
+      visitorId: credentials.visitorId,
     },
   });
 
@@ -34,7 +32,7 @@ export default async function handleResetSession(req: Request, res: Response) {
           },
         },
       ),
-      closeIframeForVisitors({ ...visitors, [visitorId]: null }, keyAsset.id),
+      closeIframeForVisitors({ ...visitors, [credentials.visitorId]: null }, keyAsset.id),
     ]);
     endBreakout(keyAsset.id);
     return res.json({

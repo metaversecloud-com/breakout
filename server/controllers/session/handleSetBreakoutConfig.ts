@@ -1,7 +1,7 @@
 import { DroppedAsset, WorldActivity as IWorldActivity } from "@rtsdk/topia";
 import { Credentials } from "../../types/index.js";
 import { getDroppedAssetsBySceneDropId } from "../../utils/droppedAssets/getDroppedAssetsBySceneDropId.js";
-import { WorldActivity, errorHandler, getDroppedAsset } from "../../utils/index.js";
+import { WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 import moveToLobby from "../../utils/session/moveToLobby.js";
 import getMatches from "../../utils/session/getMatches.js";
@@ -70,8 +70,7 @@ setInterval(() => {
 }, 1000);
 
 export default async function handleSetBreakoutConfig(req: Request, res: Response) {
-  const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId, profileId } =
-    req.query as unknown as Credentials;
+  const credentials = getCredentials(req.query);
 
   const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
   const numOfRounds = parseInt(req.body.numOfRounds);
@@ -80,23 +79,13 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const includeAdmins = req.body.includeAdmins;
 
   if (60 * minutes + seconds < 10) {
-    console.log(`Invalid configuration for ${assetId}`);
+    console.log(`Invalid configuration for ${credentials.assetId}`);
     return res.status(400).json({ message: "Invalid configuration" });
   }
 
-  const credentials = {
-    assetId,
-    interactivePublicKey,
-    interactiveNonce,
-    urlSlug,
-    visitorId,
-    sceneDropId,
-    profileId,
-  } as Credentials;
-
   const [keyAsset, breakoutScene]: [IDroppedAsset, DroppedAsset[]] = await Promise.all([
     getDroppedAsset(credentials),
-    getDroppedAssetsBySceneDropId(credentials, sceneDropId),
+    getDroppedAssetsBySceneDropId(credentials, credentials.sceneDropId),
   ]);
 
   const privateZonesAtStart = breakoutScene.filter(
@@ -106,11 +95,11 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     (droppedAsset: DroppedAsset) => droppedAsset.isLandmarkZoneEnabled,
   ) as DroppedAsset;
 
-  const worldActivityAtStart = WorldActivity.create(urlSlug, {
+  const worldActivityAtStart = WorldActivity.create(credentials.urlSlug, {
     credentials: {
-      interactiveNonce,
-      interactivePublicKey,
-      visitorId,
+      interactiveNonce: credentials.interactiveNonce,
+      interactivePublicKey: credentials.interactivePublicKey,
+      visitorId: credentials.visitorId,
     },
   });
 
@@ -129,14 +118,14 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
           breakouts[keyAsset.id!].adminCredentials.interactiveNonce
         ) {
-          worldActivity = WorldActivity.create(urlSlug, {
+          worldActivity = WorldActivity.create(credentials.urlSlug, {
             credentials: {
               interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
-              interactivePublicKey,
+              interactivePublicKey: credentials.interactivePublicKey,
               visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
             },
           });
-          const breakoutScene: DroppedAsset[] = await getDroppedAssetsBySceneDropId(breakouts[keyAsset.id!].adminCredentials, sceneDropId);
+          const breakoutScene: DroppedAsset[] = await getDroppedAssetsBySceneDropId(breakouts[keyAsset.id!].adminCredentials, credentials.sceneDropId);
           privateZones = breakoutScene.filter(
             (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
           ) as DroppedAsset[];
@@ -188,10 +177,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
             breakouts[keyAsset.id!].adminCredentials.interactiveNonce
           ) {
-            worldActivity = WorldActivity.create(urlSlug, {
+            worldActivity = WorldActivity.create(credentials.urlSlug, {
               credentials: {
                 interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
-                interactivePublicKey,
+                interactivePublicKey: credentials.interactivePublicKey,
                 visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
               },
             });
