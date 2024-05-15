@@ -56,8 +56,8 @@ export default async function placeVisitors(
     debugger;
     return errorHandler({
       error,
-      functionName: "Cannot move visitors",
-      message: "Visitors Error",
+      functionName: "placeVisitors",
+      message: "Visitors Error: Cannot move visitors",
     });
   }
 };

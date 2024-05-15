@@ -1,9 +1,9 @@
 import { DroppedAsset, Visitor } from "@rtsdk/topia";
 import { errorHandler } from "../errorHandler.js";
 
-export default async function moveToLobby(visitorsObj: { [key: string]: Visitor }, landMarkZone: DroppedAsset, keyAssetId: string) {
+export default async function moveToLobby(visitorsObj: { [key: string]: Visitor }, landmarkZone: DroppedAsset, keyAssetId: string) {
   const visitors = Object.values(visitorsObj);
-  const landMarkZoneCenter = [landMarkZone.position!.x, landMarkZone.position!.y];
+  const landmarkZoneCenter = [landmarkZone.position!.x, landmarkZone.position!.y];
   const promises: Promise<any>[] = [];
 
   visitors.forEach((visitor) => {
@@ -11,8 +11,8 @@ export default async function moveToLobby(visitorsObj: { [key: string]: Visitor 
     promises.push(
       visitor.moveVisitor({
         shouldTeleportVisitor: true,
-        x: landMarkZoneCenter[0] + Math.floor(Math.random() * 490) * xSign,
-        y: landMarkZoneCenter[1] + 600 + Math.floor(Math.random() * 231),
+        x: landmarkZoneCenter[0] + Math.floor(Math.random() * 490) * xSign,
+        y: landmarkZoneCenter[1] + 600 + Math.floor(Math.random() * 231),
       }),
     );
   });
@@ -23,8 +23,8 @@ export default async function moveToLobby(visitorsObj: { [key: string]: Visitor 
     debugger;
     return errorHandler({
       error,
-      functionName: "Cannot move visitors to lobby",
-      message: "Visitors Error",
+      functionName: "moveToLobby",
+      message: "Visitors Error: Cannot move visitors to lobby",
     });
   }
 }

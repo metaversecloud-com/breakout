@@ -6,8 +6,20 @@ export default async function handleGetDataObject(req: Request, res: Response) {
   try {
     const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId } =
       req.query as unknown as Credentials;
-    const credentials = { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId } as Credentials;
+    const credentials = {
+      assetId,
+      interactivePublicKey,
+      interactiveNonce,
+      urlSlug,
+      visitorId,
+      sceneDropId,
+    } as Credentials;
 
+    const keyAsset = await getDroppedAsset(credentials);
+    if (keyAsset.error) {
+      return res.status(404).json({ message: "Asset not found" });
+    }
+    
     const worldActivity = WorldActivity.create(urlSlug, {
       credentials: {
         interactiveNonce,
@@ -16,15 +28,11 @@ export default async function handleGetDataObject(req: Request, res: Response) {
       },
     });
 
-    const keyAsset = await getDroppedAsset(credentials);
     const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
     const visitorProfileIds = Object.values(visitors).map((visitor) => visitor.profileId);
 
     keyAsset.dataObject.participants = visitorProfileIds;
 
-    if (keyAsset.error) {
-      return res.status(404).json({ message: "Asset not found" });
-    }
     if (keyAsset) {
       return res.status(200).json(keyAsset.dataObject);
     }

@@ -1,12 +1,12 @@
 import express from "express";
-import { handleCheckInteractiveCredentials } from "./controllers/index.js";
-import { getVersion } from "./utils/getVersion.js";
-import isAdminCheck from "./controllers/status/isAdminCheck.js";
-import handleGetDataObject from "./controllers/session/handleGetDataObject.js";
-import { isAdmin } from "./middleware/isAdmin.js";
-import handleSetBreakoutConfig from "./controllers/session/handleSetBreakoutConfig.js";
-import handleResetSession from "./controllers/session/handleResetSession.js";
-import handleGetParticipantsInZone from "./controllers/session/handleGetParticipantsInZone.js";
+import { handleCheckInteractiveCredentials } from "../controllers/index.js";
+import { getVersion } from "../utils/getVersion.js";
+import isAdminCheck from "../controllers/status/isAdminCheck.js";
+import handleGetDataObject from "../controllers/session/handleGetDataObject.js";
+import { isAdmin } from "../middleware/isAdmin.js";
+import handleSetBreakoutConfig from "../controllers/session/handleSetBreakoutConfig.js";
+import handleResetSession from "../controllers/session/handleResetSession.js";
+import handleGetParticipantsInZone from "../controllers/session/handleGetParticipantsInZone.js";
 
 const router = express.Router();
 

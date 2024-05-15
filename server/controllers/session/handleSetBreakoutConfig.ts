@@ -1,4 +1,4 @@
-import { DroppedAsset } from "@rtsdk/topia";
+import { DroppedAsset, WorldActivity as IWorldActivity } from "@rtsdk/topia";
 import { Credentials } from "../../types/index.js";
 import { getDroppedAssetsBySceneDropId } from "../../utils/droppedAssets/getDroppedAssetsBySceneDropId.js";
 import { WorldActivity, errorHandler, getDroppedAsset } from "../../utils/index.js";
@@ -14,6 +14,10 @@ export type Breakouts = Record<
   {
     interval: NodeJS.Timeout;
     timeouts: NodeJS.Timeout[];
+    adminProfileId: string;
+    adminOriginalInteractiveNonce: string;
+    adminCredentials: Credentials;
+    landmarkZoneId: string;
     data: {
       round: number;
       startTime: number;
@@ -36,6 +40,20 @@ export const endBreakout = (key: string) => {
   }
 };
 
+export const updateAdminCredentials = (credentials: Credentials) => {
+  const session = Object.entries(breakouts).find(([_, data]) => data.landmarkZoneId === credentials.assetId);
+  if (session && session[1].adminProfileId === credentials.profileId) {
+    const [key, _] = session as [string, Breakouts[string]];
+
+    if (
+      breakouts[key].adminProfileId === credentials.profileId &&
+      breakouts[key].adminOriginalInteractiveNonce !== credentials.interactiveNonce
+    ) {
+      breakouts[key].adminCredentials = { ...credentials, assetId: key };
+    }
+  }
+};
+
 const countdown = 20;
 
 setInterval(() => {
@@ -52,7 +70,7 @@ setInterval(() => {
 }, 1000);
 
 export default async function handleSetBreakoutConfig(req: Request, res: Response) {
-  const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId } =
+  const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId, sceneDropId, profileId } =
     req.query as unknown as Credentials;
 
   const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
@@ -73,6 +91,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     urlSlug,
     visitorId,
     sceneDropId,
+    profileId,
   } as Credentials;
 
   const [keyAsset, breakoutScene]: [IDroppedAsset, DroppedAsset[]] = await Promise.all([
@@ -80,14 +99,14 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     getDroppedAssetsBySceneDropId(credentials, sceneDropId),
   ]);
 
-  const privateZones = breakoutScene.filter(
+  const privateZonesAtStart = breakoutScene.filter(
     (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
   ) as DroppedAsset[];
-  const landMarkZone = breakoutScene.find(
+  const landmarkZone = breakoutScene.find(
     (droppedAsset: DroppedAsset) => droppedAsset.isLandmarkZoneEnabled,
   ) as DroppedAsset;
 
-  const worldActivity = WorldActivity.create(urlSlug, {
+  const worldActivityAtStart = WorldActivity.create(urlSlug, {
     credentials: {
       interactiveNonce,
       interactivePublicKey,
@@ -103,7 +122,25 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     () => {
       const nextRound = async () => {
         breakouts[keyAsset.id!].data.round += 1;
+        let worldActivity = worldActivityAtStart;
+        let privateZones = privateZonesAtStart;
 
+        if (
+          breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
+          breakouts[keyAsset.id!].adminCredentials.interactiveNonce
+        ) {
+          worldActivity = WorldActivity.create(urlSlug, {
+            credentials: {
+              interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
+              interactivePublicKey,
+              visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
+            },
+          });
+          const breakoutScene: DroppedAsset[] = await getDroppedAssetsBySceneDropId(breakouts[keyAsset.id!].adminCredentials, sceneDropId);
+          privateZones = breakoutScene.filter(
+            (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
+          ) as DroppedAsset[];
+        }
         try {
           const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
 
@@ -122,15 +159,12 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           const matches = getMatches(false, keyAsset.id!, participants, breakouts);
 
           console.log(
-            `Round ${breakouts[keyAsset.id!].data.round} started for ${keyAsset.id!} with ${participants.length} participants`,
+            `Round ${breakouts[keyAsset.id!].data.round} of ${breakouts[keyAsset.id!].data.numOfRounds} started for ${keyAsset.id!} with ${participants.length} participants`,
           );
 
-          const timeout = setTimeout(
-            () => {
-              placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
-            },
-            (countdown - 1) * 1000,
-          );
+          const timeout = setTimeout(() => {
+            placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
+          }, countdown * 1000);
           breakouts[keyAsset.id!].timeouts.push(timeout);
 
           await openIframeForVisitors(visitorsObj, keyAsset.id!);
@@ -140,24 +174,37 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           debugger;
           return errorHandler({
             error,
-            functionName: "Cannot go to next round",
-            message: "Interval Error",
-            req,
-            res,
+            functionName: "nextRound",
+            message: "Interval Error: Cannot go to next round",
           });
         }
       };
 
       const gatherTopis = async () => {
         try {
+          let worldActivity = worldActivityAtStart;
+
+          if (
+            breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
+            breakouts[keyAsset.id!].adminCredentials.interactiveNonce
+          ) {
+            worldActivity = WorldActivity.create(urlSlug, {
+              credentials: {
+                interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
+                interactivePublicKey,
+                visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
+              },
+            });
+          }
+
           const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
-          await moveToLobby(visitorsObj, landMarkZone, keyAsset.id!);
+          await moveToLobby(visitorsObj, landmarkZone, keyAsset.id!);
         } catch (error) {
           debugger;
           return errorHandler({
             error,
-            functionName: "Cannot gather Topis",
-            message: "Visitors Error",
+            functionName: "gatherTopis",
+            message: "Visitors Error: Cannot gather Topis",
           });
         }
       };
@@ -175,7 +222,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   );
 
   try {
-    const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+    const visitorsObj = await worldActivityAtStart.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
     const participants = Object.values(visitorsObj)
       .filter((visitor) => {
         if (!includeAdmins) {
@@ -191,6 +238,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     breakouts[keyAsset.id!] = {
       interval: interval,
       timeouts: [],
+      adminProfileId: credentials.profileId,
+      adminOriginalInteractiveNonce: credentials.interactiveNonce,
+      adminCredentials: credentials,
+      landmarkZoneId: keyAsset.dataObject!.landmarkZoneId,
       data: {
         round: 1,
         startTime,
@@ -202,12 +253,9 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     };
     const matches = getMatches(true, keyAsset.id!, participants, breakouts);
 
-    const timeout = setTimeout(
-      () => {
-        placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
-      },
-      (countdown - 1) * 1000,
-    );
+    const timeout = setTimeout(() => {
+      placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZonesAtStart);
+    }, countdown * 1000);
     breakouts[keyAsset.id!].timeouts.push(timeout);
 
     await Promise.all([
@@ -231,7 +279,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     ]);
 
     console.log(
-      `Round ${breakouts[keyAsset.id!].data.round} started for ${keyAsset.id!} with ${participants.length} participants`,
+      `Round ${breakouts[keyAsset.id!].data.round} of ${breakouts[keyAsset.id!].data.numOfRounds} started for ${keyAsset.id!} with ${participants.length} participants`,
     );
 
     return res.json({ success: true, startTime });

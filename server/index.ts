@@ -1,10 +1,11 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import router from "./routes.js";
+import router from "./routes/api.js";
 import path from "path";
 import { cleanReturnPayload } from "./utils/cleanReturnPayload.js";
 import { fileURLToPath } from "url";
+import webhooks from "./routes/webhook.js";
 
 dotenv.config({ path: "../.env" });
 
@@ -26,7 +27,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
 app.use("/api", router);
+app.use("/webhook", webhooks);
 
 if (process.env.NODE_ENV === "development") {
   const corsOptions = {

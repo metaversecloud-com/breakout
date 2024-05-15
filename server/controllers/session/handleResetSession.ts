@@ -2,6 +2,7 @@ import { Credentials } from "../../types/index.js";
 import { WorldActivity, defaultDataObject, errorHandler, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 import { endBreakout } from "./handleSetBreakoutConfig.js";
+import closeIframeForVisitors from "../../utils/session/closeIframeForVisitors.js";
 
 export default async function handleResetSession(req: Request, res: Response) {
   const { assetId, interactivePublicKey, interactiveNonce, urlSlug, visitorId } = req.query as unknown as Credentials;
@@ -23,15 +24,18 @@ export default async function handleResetSession(req: Request, res: Response) {
   const lockId = `${keyAsset.id}_${timeFactor}`;
 
   try {
-    await keyAsset.updateDataObject(
-      { ...defaultDataObject, landmarkZoneId: keyAsset.dataObject.landmarkZoneId },
-      {
-        lock: {
-          lockId,
-          releaseLock: false,
+    await Promise.all([
+      keyAsset.updateDataObject(
+        { ...defaultDataObject, landmarkZoneId: keyAsset.dataObject.landmarkZoneId },
+        {
+          lock: {
+            lockId,
+            releaseLock: false,
+          },
         },
-      },
-    );
+      ),
+      closeIframeForVisitors({ ...visitors, [visitorId]: null }, keyAsset.id),
+    ]);
     endBreakout(keyAsset.id);
     return res.json({
       success: true,

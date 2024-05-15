@@ -27,7 +27,7 @@ export default async function openIframeForVisitors(visitors: { [key: string]: V
     debugger;
     return errorHandler({
       error,
-      functionName: "Cannot open iframes",
+      functionName: "openIframeForVisitors",
       message: "Error opening Iframes",
     });
   }
