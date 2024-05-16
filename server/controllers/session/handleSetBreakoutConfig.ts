@@ -73,12 +73,12 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const credentials = getCredentials(req.query);
 
   const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
-  const numOfRounds = parseInt(req.body.numOfRounds);
+  const numOfRounds = Math.min(parseInt(req.body.numOfRounds), 25);
   const minutes = parseInt(req.body.minutes);
   const seconds = parseInt(req.body.seconds);
   const includeAdmins = req.body.includeAdmins;
 
-  if (60 * minutes + seconds < 10) {
+  if (isNaN(minutes) || isNaN(seconds) || 60 * minutes + seconds < 10 || isNaN(numOfGroups) || isNaN(numOfRounds) || numOfGroups < 1 || numOfRounds < 1) {
     console.log(`Invalid configuration for ${credentials.assetId}`);
     return res.status(400).json({ message: "Invalid configuration" });
   }
@@ -107,109 +107,6 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const lockId = `${keyAsset.id!}_${timeFactor}`;
   const startTime = Date.now();
 
-  const interval = setInterval(
-    () => {
-      const nextRound = async () => {
-        breakouts[keyAsset.id!].data.round += 1;
-        let worldActivity = worldActivityAtStart;
-        let privateZones = privateZonesAtStart;
-
-        if (
-          breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
-          breakouts[keyAsset.id!].adminCredentials.interactiveNonce
-        ) {
-          worldActivity = WorldActivity.create(credentials.urlSlug, {
-            credentials: {
-              interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
-              interactivePublicKey: credentials.interactivePublicKey,
-              visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
-            },
-          });
-          const breakoutScene: DroppedAsset[] = await getDroppedAssetsBySceneDropId(breakouts[keyAsset.id!].adminCredentials, credentials.sceneDropId);
-          privateZones = breakoutScene.filter(
-            (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
-          ) as DroppedAsset[];
-        }
-        try {
-          const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
-
-          const participants = Object.values(visitorsObj)
-            .filter((visitor) => {
-              if (!includeAdmins) {
-                return !visitor.isAdmin;
-              }
-              return true;
-            })
-            .map((visitor) => visitor.profileId) as string[];
-          if (participants.length < 2) {
-            console.log(`Not enough participants to continue the breakout ${keyAsset.id}`);
-            return;
-          }
-          const matches = getMatches(false, keyAsset.id!, participants, breakouts);
-
-          console.log(
-            `Round ${breakouts[keyAsset.id!].data.round} of ${breakouts[keyAsset.id!].data.numOfRounds} started for ${keyAsset.id!} with ${participants.length} participants`,
-          );
-
-          const timeout = setTimeout(() => {
-            placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
-          }, countdown * 1000);
-          breakouts[keyAsset.id!].timeouts.push(timeout);
-
-          await openIframeForVisitors(visitorsObj, keyAsset.id!);
-
-          return { success: true, startTime };
-        } catch (error) {
-          debugger;
-          return errorHandler({
-            error,
-            functionName: "nextRound",
-            message: "Interval Error: Cannot go to next round",
-          });
-        }
-      };
-
-      const gatherTopis = async () => {
-        try {
-          let worldActivity = worldActivityAtStart;
-
-          if (
-            breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
-            breakouts[keyAsset.id!].adminCredentials.interactiveNonce
-          ) {
-            worldActivity = WorldActivity.create(credentials.urlSlug, {
-              credentials: {
-                interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
-                interactivePublicKey: credentials.interactivePublicKey,
-                visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
-              },
-            });
-          }
-
-          const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
-          await moveToLobby(visitorsObj, landmarkZone, keyAsset.id!);
-        } catch (error) {
-          debugger;
-          return errorHandler({
-            error,
-            functionName: "gatherTopis",
-            message: "Visitors Error: Cannot gather Topis",
-          });
-        }
-      };
-
-      if (breakouts[keyAsset.id!] && breakouts[keyAsset.id!].data.round < breakouts[keyAsset.id!].data.numOfRounds) {
-        nextRound();
-      } else if (
-        breakouts[keyAsset.id!] &&
-        breakouts[keyAsset.id!].data.round === breakouts[keyAsset.id!].data.numOfRounds
-      ) {
-        gatherTopis();
-      }
-    },
-    (60 * minutes + seconds + countdown) * 1000,
-  );
-
   try {
     const visitorsObj = await worldActivityAtStart.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
     const participants = Object.values(visitorsObj)
@@ -224,28 +121,6 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       console.log(`Not enough participants to start the breakout ${keyAsset.id}`);
       return res.status(400).json({ message: "Not enough participants" });
     }
-    breakouts[keyAsset.id!] = {
-      interval: interval,
-      timeouts: [],
-      adminProfileId: credentials.profileId,
-      adminOriginalInteractiveNonce: credentials.interactiveNonce,
-      adminCredentials: credentials,
-      landmarkZoneId: keyAsset.dataObject!.landmarkZoneId,
-      data: {
-        round: 1,
-        startTime,
-        secondsPerRound: minutes * 60 + seconds,
-        numOfRounds,
-        numOfGroups,
-        matchesObj: {},
-      },
-    };
-    const matches = getMatches(true, keyAsset.id!, participants, breakouts);
-
-    const timeout = setTimeout(() => {
-      placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZonesAtStart);
-    }, countdown * 1000);
-    breakouts[keyAsset.id!].timeouts.push(timeout);
 
     await Promise.all([
       keyAsset.updateDataObject(
@@ -266,6 +141,136 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       ),
       openIframeForVisitors(visitorsObj, keyAsset.id!),
     ]);
+    
+    const interval = setInterval(
+      () => {
+        const nextRound = async () => {
+          breakouts[keyAsset.id!].data.round += 1;
+          let worldActivity = worldActivityAtStart;
+          let privateZones = privateZonesAtStart;
+
+          if (
+            breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
+            breakouts[keyAsset.id!].adminCredentials.interactiveNonce
+          ) {
+            worldActivity = WorldActivity.create(credentials.urlSlug, {
+              credentials: {
+                interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
+                interactivePublicKey: credentials.interactivePublicKey,
+                visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
+              },
+            });
+            const breakoutScene: DroppedAsset[] = await getDroppedAssetsBySceneDropId(
+              breakouts[keyAsset.id!].adminCredentials,
+              credentials.sceneDropId,
+            );
+            privateZones = breakoutScene.filter(
+              (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
+            ) as DroppedAsset[];
+          }
+          try {
+            const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+
+            const participants = Object.values(visitorsObj)
+              .filter((visitor) => {
+                if (!includeAdmins) {
+                  return !visitor.isAdmin;
+                }
+                return true;
+              })
+              .map((visitor) => visitor.profileId) as string[];
+            if (participants.length < 2) {
+              console.log(`Not enough participants to continue the breakout ${keyAsset.id}`);
+              return;
+            }
+            const matches = getMatches(false, keyAsset.id!, participants, breakouts);
+
+            console.log(
+              `Round ${breakouts[keyAsset.id!].data.round} of ${breakouts[keyAsset.id!].data.numOfRounds} started for ${keyAsset.id!} with ${participants.length} participants`,
+            );
+
+            const timeout = setTimeout(() => {
+              placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
+            }, countdown * 1000);
+            breakouts[keyAsset.id!].timeouts.push(timeout);
+
+            await openIframeForVisitors(visitorsObj, keyAsset.id!);
+
+            return { success: true, startTime };
+          } catch (error) {
+            debugger;
+            return errorHandler({
+              error,
+              functionName: "nextRound",
+              message: "Interval Error: Cannot go to next round",
+            });
+          }
+        };
+
+        const gatherTopis = async () => {
+          try {
+            let worldActivity = worldActivityAtStart;
+
+            if (
+              breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
+              breakouts[keyAsset.id!].adminCredentials.interactiveNonce
+            ) {
+              worldActivity = WorldActivity.create(credentials.urlSlug, {
+                credentials: {
+                  interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
+                  interactivePublicKey: credentials.interactivePublicKey,
+                  visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
+                },
+              });
+            }
+
+            const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+            await moveToLobby(visitorsObj, landmarkZone, keyAsset.id!);
+          } catch (error) {
+            debugger;
+            return errorHandler({
+              error,
+              functionName: "gatherTopis",
+              message: "Visitors Error: Cannot gather Topis",
+            });
+          }
+        };
+
+        if (breakouts[keyAsset.id!] && breakouts[keyAsset.id!].data.round < breakouts[keyAsset.id!].data.numOfRounds) {
+          nextRound();
+        } else if (
+          breakouts[keyAsset.id!] &&
+          breakouts[keyAsset.id!].data.round === breakouts[keyAsset.id!].data.numOfRounds
+        ) {
+          gatherTopis();
+        }
+      },
+      (60 * minutes + seconds + countdown) * 1000,
+    );
+
+    breakouts[keyAsset.id!] = {
+      interval: interval,
+      timeouts: [],
+      adminProfileId: credentials.profileId,
+      adminOriginalInteractiveNonce: credentials.interactiveNonce,
+      adminCredentials: credentials,
+      landmarkZoneId: keyAsset.dataObject!.landmarkZoneId,
+      data: {
+        round: 1,
+        startTime,
+        secondsPerRound: minutes * 60 + seconds,
+        numOfRounds,
+        numOfGroups,
+        matchesObj: {},
+      },
+    };
+
+    const matches = getMatches(true, keyAsset.id!, participants, breakouts);
+
+    const timeout = setTimeout(() => {
+      placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZonesAtStart);
+    }, countdown * 1000);
+    breakouts[keyAsset.id!].timeouts.push(timeout);
 
     console.log(
       `Round ${breakouts[keyAsset.id!].data.round} of ${breakouts[keyAsset.id!].data.numOfRounds} started for ${keyAsset.id!} with ${participants.length} participants`,
