@@ -66,6 +66,6 @@ const endBreakout = async (backendAPI: AxiosInstance) => {
     console.error(error);
     return null;
   }
-}
+};
 
 export { checkIsAdmin, checkInteractiveCredentials, fetchDataObject, setBreakoutConfig, endBreakout, getParticipants };

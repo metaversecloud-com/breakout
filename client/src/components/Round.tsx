@@ -8,16 +8,21 @@ const Round: React.FC = () => {
   const { sessionData } = useContext(GlobalStateContext) as InitialState;
   const [isCountdownPeriod, setIsCountdownPeriod] = useState(false);
 
+  const [isSessionStarted, setIsSessionStarted] = useState(false);
+
   const roundStartTimes = sessionData?.numOfRounds
     ? Array.from(
         { length: sessionData.numOfRounds + 1 },
         (_, i) => Math.floor(sessionData.startTime / 1000) + (sessionData.secondsPerRound + countdownInit) * i,
       )
     : [];
-  const [roundNum, setRoundNum] = useState(() => {
+
+  const findRoundNum = () => {
     const now = Math.floor(Date.now() / 1000);
     return roundStartTimes.findIndex((time) => time > now);
-  });
+  };
+
+  const [roundNum, setRoundNum] = useState(findRoundNum());
 
   const [countdown, setCountdown] = useState(countdownInit);
 
@@ -28,35 +33,26 @@ const Round: React.FC = () => {
   };
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
+  
   useEffect(() => {
-    if (sessionData) {
+    if (sessionData?.status === "active" && !isSessionStarted) {
       const timer = setInterval(() => {
         if (!sessionData) {
           return;
         }
-        if (timeLeft > 1) {
-          if (timeLeft >= sessionData.secondsPerRound) {
-            setCountdown(timeLeft - sessionData.secondsPerRound);
-            if (!isCountdownPeriod) {
-              setIsCountdownPeriod(true);
-            }
-          } else {
-            if (isCountdownPeriod) {
-              setIsCountdownPeriod(false);
-            }
+        const timeLeft = calculateTimeLeft();
+
+        if (timeLeft >= sessionData.secondsPerRound) {
+          if (timeLeft === sessionData.secondsPerRound + countdownInit) {
+            setRoundNum(findRoundNum());
           }
-          setTimeLeft(timeLeft - 1);
+          setCountdown(timeLeft - sessionData.secondsPerRound);
+          setIsCountdownPeriod(true);
         } else {
-          if (roundNum < sessionData.numOfRounds) {
-            if (timeLeft === 1) {
-              setIsCountdownPeriod(true);
-              setCountdown(countdownInit);
-              setRoundNum(roundNum + 1);
-            }
-            setTimeLeft(calculateTimeLeft());
-          }
+          setIsCountdownPeriod(false);
         }
+
+        setTimeLeft(timeLeft);
       }, 1000);
 
       const timeout = setTimeout(
@@ -64,15 +60,13 @@ const Round: React.FC = () => {
           console.log("CLEARING INTERVAL");
           clearInterval(timer);
         },
-        sessionData.startTime + (sessionData.secondsPerRound + countdownInit) * 1000 * sessionData.numOfRounds,
+        (sessionData.secondsPerRound + countdownInit) * 1000 * sessionData.numOfRounds,
       );
 
-      return () => {
-        clearInterval(timer);
-        clearTimeout(timeout);
-      };
+      setIsSessionStarted(true);
+
     }
-  }, [timeLeft, sessionData]);
+  }, [sessionData?.status]);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);

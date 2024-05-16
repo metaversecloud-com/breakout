@@ -37,6 +37,7 @@ const Configure: React.FC = () => {
     setStartLoading(true);
 
     const res = await setBreakoutConfig(backendAPI!, formData);
+    
     if (res) {
       const { startTime } = res;
       dispatch!({
@@ -87,7 +88,7 @@ const Configure: React.FC = () => {
                   value={formData.numOfGroups}
                   onChange={handleInputChange}
                   min={1}
-                  max={sessionData?.participants.length}
+                  max={sessionData ? Math.min(sessionData?.participants.length, 16) : 16}
                   className="border p-1 rounded-md text-center mx-1 w-16"
                 />
                 groups
@@ -113,6 +114,8 @@ const Configure: React.FC = () => {
                   id="breakout-numOfRounds"
                   type="number"
                   name="numOfRounds"
+                  min={1}
+                  max={25}
                   value={formData.numOfRounds}
                   className="border p-1 rounded-md text-center mr-1 w-16"
                   onChange={handleInputChange}
