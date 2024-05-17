@@ -7,6 +7,7 @@ import { isAdmin } from "../middleware/isAdmin.js";
 import handleSetBreakoutConfig from "../controllers/session/handleSetBreakoutConfig.js";
 import handleResetSession from "../controllers/session/handleResetSession.js";
 import handleGetParticipantsInZone from "../controllers/session/handleGetParticipantsInZone.js";
+import handleCloseIframe from "../controllers/session/handleCloseIframe.js";
 
 const router = express.Router();
 
@@ -37,5 +38,6 @@ router.get("/data-object", handleGetDataObject);
 router.get("/get-participants", isAdmin, handleGetParticipantsInZone);
 router.post("/set-config", isAdmin, handleSetBreakoutConfig);
 router.post("/reset", isAdmin, handleResetSession);
+router.post("/close-iframe", handleCloseIframe);
 
 export default router;

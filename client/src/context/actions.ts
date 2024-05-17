@@ -68,4 +68,14 @@ const endBreakout = async (backendAPI: AxiosInstance) => {
   }
 };
 
-export { checkIsAdmin, checkInteractiveCredentials, fetchDataObject, setBreakoutConfig, endBreakout, getParticipants };
+const closeIframe = async (backendAPI: AxiosInstance) => {
+  try {
+    const result = await backendAPI.post("/close-iframe");
+    return result.data;
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
+
+export { checkIsAdmin, checkInteractiveCredentials, fetchDataObject, setBreakoutConfig, endBreakout, getParticipants, closeIframe };

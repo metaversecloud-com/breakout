@@ -1,11 +1,12 @@
 import { GlobalStateContext } from "@/context/GlobalContext";
+import { closeIframe } from "@/context/actions";
 import { InitialState } from "@/context/types";
 import React, { useContext, useEffect, useState } from "react";
 
 const countdownInit = 20;
 
 const Round: React.FC = () => {
-  const { sessionData } = useContext(GlobalStateContext) as InitialState;
+  const { sessionData, backendAPI } = useContext(GlobalStateContext) as InitialState;
   const [isCountdownPeriod, setIsCountdownPeriod] = useState(false);
 
   const [isSessionStarted, setIsSessionStarted] = useState(false);
@@ -33,7 +34,7 @@ const Round: React.FC = () => {
   };
 
   const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-  
+
   useEffect(() => {
     if (sessionData?.status === "active" && !isSessionStarted) {
       const timer = setInterval(() => {
@@ -55,16 +56,17 @@ const Round: React.FC = () => {
         setTimeLeft(timeLeft);
       }, 1000);
 
-      const timeout = setTimeout(
-        () => {
-          console.log("CLEARING INTERVAL");
+      setTimeout(
+        () => {         
+          closeIframe(backendAPI!);
           clearInterval(timer);
         },
-        (sessionData.secondsPerRound + countdownInit) * 1000 * sessionData.numOfRounds,
+
+        (sessionData.secondsPerRound + countdownInit) * 1000 * sessionData.numOfRounds -
+          (Date.now() - sessionData.startTime),
       );
 
       setIsSessionStarted(true);
-
     }
   }, [sessionData?.status]);
 
