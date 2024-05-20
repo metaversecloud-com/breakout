@@ -240,7 +240,15 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
 
             const visitorsObj = await worldActivity.fetchVisitorsInZone({
               droppedAssetId: keyAsset.dataObject.landmarkZoneId,
+              shouldIncludeAdminPermissions: true,
             });
+            if (!includeAdmins) {
+              Object.values(visitorsObj).forEach((visitor) => {
+                if (visitor.isAdmin) {
+                  delete visitorsObj[visitor.visitorId];
+                }
+              });
+            }
             await moveToLobby(visitorsObj, landmarkZone, keyAsset.id!);
           } catch (error) {
             debugger;

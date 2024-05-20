@@ -2,6 +2,7 @@ import { GlobalDispatchContext, GlobalStateContext } from "@/context/GlobalConte
 import { getParticipants, setBreakoutConfig } from "@/context/actions";
 import { InitialState, SET_BREAKOUT, SET_PARTICIPANT } from "@/context/types";
 import React, { useContext, useState } from "react";
+import { Tooltip } from "react-tooltip";
 
 const Configure: React.FC = () => {
   const dispatch = useContext(GlobalDispatchContext);
@@ -77,15 +78,18 @@ const Configure: React.FC = () => {
         </div>
         <div className="flex flex-col w-full">
           <h2 className="h5">Groups</h2>
-          <div className="flex flex-row w-full justify-start items-center">
-            <p className="p1 w-3/5">{sessionData?.participants.length} Participants</p>
+          <div className="flex flex-row w-full justify-between items-center">
+            <p className="p1">{sessionData?.participants.length} Participants</p>
             <div className="flex flex-col items-center justify-start">
-              <div className="tooltip">
-                <span className="tooltip-content">Refresh Participant Count</span>
-                <button disabled={getParticipantsLoading} className="btn btn-icon !p-0" onClick={handleGetParticipants}>
-                  <img src="/refresh.svg" alt="refresh" className="w-6 h-6" />
-                </button>
-              </div>
+              <button
+                data-tooltip-id="refresh"
+                data-tooltip-content="Refresh Participant Count"
+                disabled={getParticipantsLoading}
+                className="btn btn-icon !p-0"
+                onClick={handleGetParticipants}
+              >
+                <img src="/refresh.svg" alt="refresh" className="w-6 h-6" />
+              </button>
             </div>
           </div>
           <form onSubmit={handleConfirmation} className="flex flex-col w-full">
@@ -144,7 +148,7 @@ const Configure: React.FC = () => {
                   onChange={handleInputChange}
                   className="border p-1 rounded-md text-center mx-1 w-16"
                 />
-                <span className="ml-1 mr-2">min,</span>
+                <span className="ml-1 mr-2">min</span>
               </label>
               <label htmlFor="breakout-seconds" className="flex items-center text-[#3b5166]">
                 <input
@@ -199,6 +203,7 @@ const Configure: React.FC = () => {
           </div>
         </div>
       )}
+      <Tooltip id="refresh" className="!bg-[#0a2540] text-white" />
     </>
   );
 };
