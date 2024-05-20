@@ -33,7 +33,7 @@ jobs:
         run: |
           service_value=$(jq -c ".\"$reponame\"" <<< "$repo_service_map")
           echo "$(echo $service_value | jq -c)"
-          if [[ -z "$service_value" ]]; then
+          if [[ -z "${service_value:-}" ]]; then
             echo "Service value from map is missing. Using repository name instead."
             echo "service=[$reponame]" >> "$GITHUB_OUTPUT"
           elif [[ -n "$service_value" && $(echo "$service_value" | jq 'length == 0') == "true" ]]; then
