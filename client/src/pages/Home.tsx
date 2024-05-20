@@ -1,62 +1,70 @@
 import { useContext, useState } from "react";
 
 // context
-import { GlobalStateContext } from "@/context/GlobalContext";
+import { GlobalDispatchContext, GlobalStateContext } from "@/context/GlobalContext";
+import Round from "@/components/Round";
+import DottedLoader from "@/components/DottedLoader";
+import Configure from "@/components/Configure";
+import { endBreakout } from "@/context/actions";
+import { RESET_BREAKOUT, SET_INIT } from "@/context/types";
 
-// utils
-import { backendAPI } from "@/utils/backendAPI";
+const Home: React.FC = () => {
+  const dispatch = useContext(GlobalDispatchContext);
 
-const Home = () => {
-  const [droppedAsset, setDroppedAsset] = useState({ assetName: "", bottomLayerURL: "", id: null, topLayerURL: null });
+  const { hasInteractiveParams, isAdmin, backendAPI, initLoading, sessionData } = useContext(GlobalStateContext);
 
-  const { hasInteractiveParams, hasSetupBackend } = useContext(GlobalStateContext);
+  const [endLoading, setEndLoading] = useState(false);
 
-  const handleGetDroppedAsset = async () => {
-    try {
-      const result = await backendAPI.get("/dropped-asset");
-      if (result.data.success) {
-        setDroppedAsset(result.data.droppedAsset);
-      } else return console.log("Error getting data object");
-    } catch (error) {
-      console.log(error);
+  const handleEnd = async () => {
+    setEndLoading(true);
+    const res = await endBreakout(backendAPI!);
+    if (res && res.success) {
+      dispatch!({ type: RESET_BREAKOUT });
+      dispatch!({ type: SET_INIT, payload: { isAdmin, dataObject: res.dataObject } });
     }
+    setEndLoading(false);
   };
 
-  if(!hasSetupBackend) return <div />
-
   return (
-    <div className="container p-6 flex items-center justify-start">
-      <div className="flex flex-col">
-        <h1 className="h2">Server side example using interactive parameters</h1>
-        <div className="max-w-screen-lg">
-          {!hasInteractiveParams ? (
-            <p>
-              Edit an asset in your world and open the Links page in the Modify Asset drawer and add a link to your
-              website or use &quot;http://localhost:3000&quot; for testing locally. You can also add assetId,
-              interactiveNonce, interactivePublicKey, urlSlug, and visitorId directly to the URL as search parameters to
-              use this feature.
-            </p>
+    <div className="flex flex-col items-center justify-start w-full h-full">
+      {initLoading ? (
+        <DottedLoader />
+      ) : (
+        <>
+          <img src="/bg.png" alt="background" className="w-80 h-44 rounded-3xl object-cover" />
+          <h1 className="h2 !mt-6 !mb-2 !font-semibold text-center">Breakout</h1>
+          <p className="p1 text-center">A fun speed networking experience.</p>
+          {sessionData?.status === "waiting" ? (
+            isAdmin ? (
+              <div className="w-full">
+                <Configure />
+              </div>
+            ) : (
+              <div className="w-full">
+                <p className="p2 !my-4">Waiting for admin to configure breakout...</p>
+              </div>
+            )
           ) : (
-            <p className="my-4">Interactive parameters found, nice work!</p>
+            <div className="w-full flex flex-col">
+              <div className="my-12 w-full">
+                <Round />
+              </div>
+              {isAdmin && (
+                <>
+                  <button
+                    onClick={handleEnd}
+                    disabled={endLoading}
+                    type="button"
+                    className="btn btn-enhanced mb-2 mt-8"
+                  >
+                    {endLoading ? "Ending..." : "End"}
+                  </button>
+                </>
+              )}
+            </div>
           )}
-        </div>
-
-        <button className="btn" onClick={handleGetDroppedAsset}>
-          Get Dropped Asset Details
-        </button>
-        {droppedAsset.id && (
-          <div className="flex flex-col w-full items-start">
-            <p className="mt-4 mb-2">
-              You have successfully retrieved the dropped asset details for {droppedAsset.assetName}!
-            </p>
-            <img
-              className="w-96 h-96 object-cover rounded-2xl my-4"
-              alt="preview"
-              src={droppedAsset.topLayerURL || droppedAsset.bottomLayerURL}
-            />
-          </div>
-        )}
-      </div>
+        </>
+      )}
     </div>
   );
 };

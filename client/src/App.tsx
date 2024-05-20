@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import { Route, Routes, useNavigate, useSearchParams } from "react-router-dom";
 
 // pages
@@ -6,16 +6,18 @@ import Home from "@pages/Home";
 import Error from "@pages/Error";
 
 // context
-import { GlobalDispatchContext } from "./context/GlobalContext";
-import { InteractiveParams, SET_HAS_SETUP_BACKEND, SET_INTERACTIVE_PARAMS } from "./context/types";
+import { GlobalDispatchContext, GlobalStateContext } from "./context/GlobalContext";
+import { InitialState, InteractiveParams, SET_BACKEND_API, SET_INTERACTIVE_PARAMS, SET_INIT } from "./context/types";
 
 // utils
 import { setupBackendAPI } from "./utils/backendAPI";
+import { checkInteractiveCredentials, checkIsAdmin, fetchDataObject } from "./context/actions";
 
 const App = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [hasInitBackendAPI, setHasInitBackendAPI] = useState(false);
+
+  const { backendAPI } = useContext(GlobalStateContext) as InitialState;
 
   const dispatch = useContext(GlobalDispatchContext);
 
@@ -68,22 +70,6 @@ const App = () => {
     [dispatch],
   );
 
-  const setHasSetupBackend = useCallback((success: boolean) => {
-      dispatch!({
-        type: SET_HAS_SETUP_BACKEND,
-        payload: { hasSetupBackend: success },
-      });
-    },
-    [dispatch],
-  );
-
-  const setupBackend = async () =>{
-      const setupResult = await setupBackendAPI(interactiveParams);
-      setHasSetupBackend(setupResult.success);
-      if(!setupResult.success) navigate('*');
-      else setHasInitBackendAPI(true);
-  }
-
   useEffect(() => {
     if (interactiveParams.assetId) {
       setInteractiveParams({
@@ -92,16 +78,44 @@ const App = () => {
     }
   }, [interactiveParams, setInteractiveParams]);
 
-  useEffect(() => {
-    if (!hasInitBackendAPI) setupBackend();
-  }, [hasInitBackendAPI, interactiveParams]);
+  const setupBackend = useCallback(async () => {
+    const backendAPI = await setupBackendAPI(interactiveParams);
 
+    dispatch!({ type: SET_BACKEND_API, payload: { backendAPI } });
+  }, [dispatch, interactiveParams]);
+
+  useEffect(() => {
+    if (!backendAPI) {
+      setupBackend();
+    }
+  }, [backendAPI, setupBackend]);
+
+  useEffect(() => {
+    const initialLoad = () => {
+      if (backendAPI) {
+        Promise.all([
+          checkInteractiveCredentials(backendAPI),
+          checkIsAdmin(backendAPI),
+          fetchDataObject(backendAPI),
+        ]).then(([result, admin, dataObject]) => {
+          if (!result || !result.success || !dataObject) {
+            navigate("*");
+            return;
+          }
+          dispatch!({ type: SET_INIT, payload: { isAdmin: admin.isAdmin, dataObject } });
+        });
+      }
+    };
+    initialLoad();
+  }, [backendAPI, dispatch, navigate]);
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="*" element={<Error />} />
-    </Routes>
+    <div className="container p-6 flex flex-col items-center justify-center">
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="*" element={<Error />} />
+      </Routes>
+    </div>
   );
 };
 

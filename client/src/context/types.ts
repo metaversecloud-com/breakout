@@ -1,5 +1,11 @@
-export const SET_HAS_SETUP_BACKEND = "SET_HAS_SETUP_BACKEND";
+import { AxiosInstance } from "axios";
+
 export const SET_INTERACTIVE_PARAMS = "SET_INTERACTIVE_PARAMS";
+export const SET_BACKEND_API = "SET_BACKEND_API";
+export const SET_INIT = "SET_INIT";
+export const SET_BREAKOUT = "SET_BREAKOUT";
+export const RESET_BREAKOUT = "RESET_BREAKOUT";
+export const SET_PARTICIPANT = "SET_PARTICIPANT";
 
 export type InteractiveParams = {
   assetId: string;
@@ -12,11 +18,26 @@ export type InteractiveParams = {
   urlSlug: string;
   username: string;
   visitorId: string;
-}
+};
+
+export type Participant = {
+  profileId: string;
+  username: string;
+};
 
 export interface InitialState {
   hasInteractiveParams: boolean;
-  hasSetupBackend: boolean;
+  backendAPI: AxiosInstance | null;
+  isAdmin: boolean | null;
+  initLoading: boolean;
+  startLoading: boolean;
+  sessionData: {
+    secondsPerRound: number;
+    numOfRounds: number;
+    participants: Participant[];
+    startTime: number;
+    status: string;
+  } | null;
 }
 
 export type ActionType = {
