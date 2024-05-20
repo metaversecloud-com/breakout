@@ -98,8 +98,9 @@ const App = () => {
           checkIsAdmin(backendAPI),
           fetchDataObject(backendAPI),
         ]).then(([result, admin, dataObject]) => {
-          if (!result || !result.success) {
+          if (!result || !result.success || !dataObject) {
             navigate("*");
+            return;
           }
           dispatch!({ type: SET_INIT, payload: { isAdmin: admin.isAdmin, dataObject } });
         });

@@ -5,11 +5,11 @@ export default async function handleGetDataObject(req: Request, res: Response) {
   try {
     const credentials = getCredentials(req.query);
     const keyAsset = await getDroppedAsset(credentials);
-    
+
     if (keyAsset.error) {
       return res.status(404).json({ message: "Asset not found" });
     }
-    
+
     const worldActivity = WorldActivity.create(credentials.urlSlug, {
       credentials: {
         interactiveNonce: credentials.interactiveNonce,
@@ -18,7 +18,7 @@ export default async function handleGetDataObject(req: Request, res: Response) {
       },
     });
 
-    const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
+    const visitors = await worldActivity.fetchVisitorsInZone({ droppedAssetId: keyAsset.dataObject.landmarkZoneId });
     const visitorProfileIds = Object.values(visitors).map((visitor) => visitor.profileId);
 
     keyAsset.dataObject.participants = visitorProfileIds;

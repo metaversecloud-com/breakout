@@ -15,7 +15,7 @@ export default async function handleResetSession(req: Request, res: Response) {
   });
 
   const keyAsset = await getDroppedAsset(credentials);
-  const visitors = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject.landmarkZoneId);
+  const visitors = await worldActivity.fetchVisitorsInZone({ droppedAssetId: keyAsset.dataObject.landmarkZoneId });
   const participants = Object.values(visitors).map((visitor) => visitor.profileId);
 
   const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);

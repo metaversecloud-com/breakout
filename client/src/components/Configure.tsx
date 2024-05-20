@@ -37,7 +37,7 @@ const Configure: React.FC = () => {
     setStartLoading(true);
 
     const res = await setBreakoutConfig(backendAPI!, formData);
-    
+
     if (res) {
       const { startTime } = res;
       dispatch!({
@@ -62,7 +62,9 @@ const Configure: React.FC = () => {
   const handleGetParticipants = async () => {
     setGetParticipantsLoading(true);
     const participants = await getParticipants(backendAPI!);
-    dispatch!({ type: SET_PARTICIPANT, payload: { participants } });
+    if (participants) {
+      dispatch!({ type: SET_PARTICIPANT, payload: { participants } });
+    }
     setGetParticipantsLoading(false);
   };
 
@@ -72,15 +74,23 @@ const Configure: React.FC = () => {
       <div className="flex flex-col w-full">
         <div className="flex w-full !my-8 items-center justify-between">
           <h4 className="h4 !font-semibold text-center">Configure Breakout</h4>
-          <button disabled={getParticipantsLoading} className="btn btn-enhanced !w-fit" onClick={handleGetParticipants}>
-            {getParticipantsLoading ? "Loading..." : "Refresh"}
-          </button>
         </div>
         <div className="flex flex-col w-full">
+          <h2 className="h5">Groups</h2>
+          <div className="flex flex-row w-full justify-start items-center">
+            <p className="p1 w-3/5">{sessionData?.participants.length} Participants</p>
+            <div className="flex flex-col items-center justify-start">
+              <div className="tooltip">
+                <span className="tooltip-content">Refresh Participant Count</span>
+                <button disabled={getParticipantsLoading} className="btn btn-icon !p-0" onClick={handleGetParticipants}>
+                  <img src="/refresh.svg" alt="refresh" className="w-6 h-6" />
+                </button>
+              </div>
+            </div>
+          </div>
           <form onSubmit={handleConfirmation} className="flex flex-col w-full">
             <div className="flex items-center w-full my-2">
               <label className="flex items-center text-[#3b5166]" htmlFor="breakout-numOfGroups">
-                Assign {sessionData?.participants.length} participants into
                 <input
                   id="breakout-numOfGroups"
                   type="number"
@@ -89,9 +99,9 @@ const Configure: React.FC = () => {
                   onChange={handleInputChange}
                   min={1}
                   max={sessionData ? Math.min(sessionData?.participants.length, 16) : 16}
-                  className="border p-1 rounded-md text-center mx-1 w-16"
+                  className="border rounded-md text-center !p-1"
                 />
-                groups
+                <span className="p-1 mx-2">Groups</span>
               </label>
             </div>
 
@@ -99,16 +109,17 @@ const Configure: React.FC = () => {
               <label htmlFor="breakout-include-admin" className="flex items-center text-[#3b5166]">
                 <input
                   id="breakout-include-admin"
-                  className="mr-2"
+                  className="input input-checkbox !p-2 !rounded-none"
                   name="includeAdmins"
                   type="checkbox"
                   checked={formData.includeAdmins}
                   onChange={handleInputChange}
                 />
-                Include Admins in groupings
+                <span className="mx-2">Include Admins in groupings</span>
               </label>
             </div>
-            <div className="flex items-center w-full my-2">
+            <div className="flex flex-col items-start w-full my-2">
+              <h2 className="h5 !my-2">Rounds</h2>
               <label htmlFor="breakout-numOfRounds" className="flex items-center text-[#3b5166]">
                 <input
                   id="breakout-numOfRounds"
@@ -117,11 +128,13 @@ const Configure: React.FC = () => {
                   min={1}
                   max={25}
                   value={formData.numOfRounds}
-                  className="border p-1 rounded-md text-center mr-1 w-16"
+                  className="border rounded-md text-center !p-1"
                   onChange={handleInputChange}
                 />
-                Rounds, each
+                <span className="mx-2">Rounds, each</span>
               </label>
+            </div>
+            <div className="flex items-center w-full">
               <label htmlFor="breakout-minutes" className="flex items-center text-[#3b5166]">
                 <input
                   id="breakout-minutes"
@@ -130,13 +143,10 @@ const Configure: React.FC = () => {
                   value={formData.minutes}
                   onChange={handleInputChange}
                   className="border p-1 rounded-md text-center mx-1 w-16"
-                />{" "}
-                min,
+                />
+                <span className="ml-1 mr-2">min,</span>
               </label>
-            </div>
-            <div className="flex items-center w-full">
               <label htmlFor="breakout-seconds" className="flex items-center text-[#3b5166]">
-                {" "}
                 <input
                   id="breakout-seconds"
                   type="number"
@@ -144,8 +154,8 @@ const Configure: React.FC = () => {
                   value={formData.seconds}
                   onChange={handleInputChange}
                   className="border p-1 rounded-md text-center mr-1 w-16"
-                />{" "}
-                sec
+                />
+                <span className="ml-1">sec</span>
               </label>
             </div>
             <button type="submit" className="btn btn-enhanced mb-2 mt-8">

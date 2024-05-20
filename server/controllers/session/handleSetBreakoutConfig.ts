@@ -78,7 +78,15 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const seconds = parseInt(req.body.seconds);
   const includeAdmins = req.body.includeAdmins;
 
-  if (isNaN(minutes) || isNaN(seconds) || 60 * minutes + seconds < 10 || isNaN(numOfGroups) || isNaN(numOfRounds) || numOfGroups < 1 || numOfRounds < 1) {
+  if (
+    isNaN(minutes) ||
+    isNaN(seconds) ||
+    60 * minutes + seconds < 10 ||
+    isNaN(numOfGroups) ||
+    isNaN(numOfRounds) ||
+    numOfGroups < 1 ||
+    numOfRounds < 1
+  ) {
     console.log(`Invalid configuration for ${credentials.assetId}`);
     return res.status(400).json({ message: "Invalid configuration" });
   }
@@ -108,7 +116,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
   const startTime = Date.now();
 
   try {
-    const visitorsObj = await worldActivityAtStart.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+    const visitorsObj = await worldActivityAtStart.fetchVisitorsInZone({
+      droppedAssetId: keyAsset.dataObject!.landmarkZoneId,
+      shouldIncludeAdminPermissions: true,
+    });
     const participants = Object.values(visitorsObj)
       .filter((visitor) => {
         if (!includeAdmins) {
@@ -141,7 +152,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       ),
       openIframeForVisitors(visitorsObj, keyAsset.id!),
     ]);
-    
+
     const interval = setInterval(
       () => {
         const nextRound = async () => {
@@ -169,7 +180,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             ) as DroppedAsset[];
           }
           try {
-            const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+            const visitorsObj = await worldActivity.fetchVisitorsInZone({
+              droppedAssetId: keyAsset.dataObject!.landmarkZoneId,
+              shouldIncludeAdminPermissions: true,
+            });
 
             const participants = Object.values(visitorsObj)
               .filter((visitor) => {
@@ -224,7 +238,9 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               });
             }
 
-            const visitorsObj = await worldActivity.fetchVisitorsInZone(keyAsset.dataObject!.landmarkZoneId);
+            const visitorsObj = await worldActivity.fetchVisitorsInZone({
+              droppedAssetId: keyAsset.dataObject.landmarkZoneId,
+            });
             await moveToLobby(visitorsObj, landmarkZone, keyAsset.id!);
           } catch (error) {
             debugger;
