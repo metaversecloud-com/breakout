@@ -70,52 +70,51 @@ setInterval(() => {
 }, 1000);
 
 export default async function handleSetBreakoutConfig(req: Request, res: Response) {
-  const credentials = getCredentials(req.query);
-
-  const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
-  const numOfRounds = Math.min(parseInt(req.body.numOfRounds), 25);
-  const minutes = parseInt(req.body.minutes);
-  const seconds = parseInt(req.body.seconds);
-  const includeAdmins = req.body.includeAdmins;
-
-  if (
-    isNaN(minutes) ||
-    isNaN(seconds) ||
-    60 * minutes + seconds < 10 ||
-    isNaN(numOfGroups) ||
-    isNaN(numOfRounds) ||
-    numOfGroups < 1 ||
-    numOfRounds < 1
-  ) {
-    console.log(`Invalid configuration for ${credentials.assetId}`);
-    return res.status(400).json({ message: "Invalid configuration" });
-  }
-
-  const [keyAsset, breakoutScene]: [IDroppedAsset, DroppedAsset[]] = await Promise.all([
-    getDroppedAsset(credentials),
-    getDroppedAssetsBySceneDropId(credentials, credentials.sceneDropId),
-  ]);
-
-  const privateZonesAtStart = breakoutScene.filter(
-    (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
-  ) as DroppedAsset[];
-  const landmarkZone = breakoutScene.find(
-    (droppedAsset: DroppedAsset) => droppedAsset.isLandmarkZoneEnabled,
-  ) as DroppedAsset;
-
-  const worldActivityAtStart = WorldActivity.create(credentials.urlSlug, {
-    credentials: {
-      interactiveNonce: credentials.interactiveNonce,
-      interactivePublicKey: credentials.interactivePublicKey,
-      visitorId: credentials.visitorId,
-    },
-  });
-
-  const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
-  const lockId = `${keyAsset.id!}_${timeFactor}`;
-  const startTime = Date.now();
-
   try {
+    const credentials = getCredentials(req.query);
+
+    const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
+    const numOfRounds = Math.min(parseInt(req.body.numOfRounds), 25);
+    const minutes = parseInt(req.body.minutes);
+    const seconds = parseInt(req.body.seconds);
+    const includeAdmins = req.body.includeAdmins;
+
+    if (
+      isNaN(minutes) ||
+      isNaN(seconds) ||
+      60 * minutes + seconds < 10 ||
+      isNaN(numOfGroups) ||
+      isNaN(numOfRounds) ||
+      numOfGroups < 1 ||
+      numOfRounds < 1
+    ) {
+      console.log(`Invalid configuration for ${credentials.assetId}`);
+      return res.status(400).json({ message: "Invalid configuration" });
+    }
+    const [keyAsset, breakoutScene]: [IDroppedAsset, DroppedAsset[]] = await Promise.all([
+      getDroppedAsset(credentials),
+      getDroppedAssetsBySceneDropId(credentials, credentials.sceneDropId),
+    ]);
+
+    const privateZonesAtStart = breakoutScene.filter(
+      (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
+    ) as DroppedAsset[];
+    const landmarkZone = breakoutScene.find(
+      (droppedAsset: DroppedAsset) => droppedAsset.isLandmarkZoneEnabled,
+    ) as DroppedAsset;
+
+    const worldActivityAtStart = WorldActivity.create(credentials.urlSlug, {
+      credentials: {
+        interactiveNonce: credentials.interactiveNonce,
+        interactivePublicKey: credentials.interactivePublicKey,
+        visitorId: credentials.visitorId,
+      },
+    });
+
+    const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
+    const lockId = `${keyAsset.id!}_${timeFactor}`;
+    const startTime = Date.now();
+
     const visitorsObj = await worldActivityAtStart.fetchVisitorsInZone({
       droppedAssetId: keyAsset.dataObject!.landmarkZoneId,
       shouldIncludeAdminPermissions: true,
