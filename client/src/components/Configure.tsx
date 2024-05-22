@@ -145,6 +145,8 @@ const Configure: React.FC = () => {
                   type="number"
                   name="minutes"
                   value={formData.minutes}
+                  min={0}
+                  max={10}
                   onChange={handleInputChange}
                   className="border p-1 rounded-md text-center mx-1 w-16"
                 />
@@ -156,6 +158,8 @@ const Configure: React.FC = () => {
                   type="number"
                   name="seconds"
                   value={formData.seconds}
+                  min={0}
+                  max={59}
                   onChange={handleInputChange}
                   className="border p-1 rounded-md text-center mr-1 w-16"
                 />
@@ -177,26 +181,32 @@ const Configure: React.FC = () => {
 
             <div className="flex flex-col items-start justify-center">
               <p className="p2">
-                <span className="font-semibold">Number of Participants:</span> {sessionData?.participants.length}
+                <span className={`font-semibold ${sessionData?.participants.length === 1 ? "text-red-500" : ""}`}>
+                  Number of Participants: {sessionData?.participants.length}
+                </span>
               </p>
               <p className="p2">
-                <span className="font-semibold">Number of Groups:</span> {formData.numOfGroups}
+                <span className="font-semibold">Number of Groups: {formData.numOfGroups}</span>
               </p>
               <p className="p2">
-                <span className="font-semibold">Number of Rounds:</span> {formData.numOfRounds}
+                <span className="font-semibold">Number of Rounds: {formData.numOfRounds}</span>
               </p>
               <p className="p2">
-                <span className="font-semibold">Time per Round:</span> {formData.minutes} min {formData.seconds} sec
+                <span
+                  className={`font-semibold ${60 * parseInt(formData.minutes) + parseInt(formData.seconds) > 600 || 60 * parseInt(formData.minutes) + parseInt(formData.seconds) < 10 ? "text-red-500" : ""}`}
+                >
+                  Time per Round: {formData.minutes} min {formData.seconds} sec
+                </span>
               </p>
               <p className="p2">
-                <span className="font-semibold">Include Admins:</span> {formData.includeAdmins ? "Yes" : "No"}
+                <span className="font-semibold">Include Admins: {formData.includeAdmins ? "Yes" : "No"}</span>
               </p>
             </div>
             <div className="actions">
               <button className="btn btn-outline" onClick={() => setShowModal(false)}>
                 Close
               </button>
-              <button className="btn btn-danger-outline" onClick={handleSubmit} disabled={startLoading}>
+              <button className={`btn btn-danger-outline ${startLoading ? 'hover:!text-[#d6dbdf] hover:!border-[#d6dbdf]' : ''}`} onClick={handleSubmit} disabled={startLoading}>
                 {startLoading ? "Starting..." : "Yes"}
               </button>
             </div>

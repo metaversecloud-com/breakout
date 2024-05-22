@@ -83,6 +83,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       isNaN(minutes) ||
       isNaN(seconds) ||
       60 * minutes + seconds < 10 ||
+      60 * minutes + seconds > 600 ||
       isNaN(numOfGroups) ||
       isNaN(numOfRounds) ||
       numOfGroups < 1 ||
