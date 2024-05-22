@@ -73,7 +73,7 @@ const Configure: React.FC = () => {
     <>
       {/* <AdminControls /> */}
       <div className="flex flex-col w-full">
-        <div className="flex w-full !my-8 items-center justify-between">
+        <div className="flex w-full !my-6 items-center justify-between">
           <h4 className="h4 !font-semibold text-center">Configure Breakout</h4>
         </div>
         <div className="flex flex-col w-full">
@@ -93,7 +93,7 @@ const Configure: React.FC = () => {
             </div>
           </div>
           <form onSubmit={handleConfirmation} className="flex flex-col w-full">
-            <div className="flex items-center w-full my-2">
+            <div className="flex items-center w-full my-1">
               <label className="flex items-center text-[#3b5166]" htmlFor="breakout-numOfGroups">
                 <input
                   id="breakout-numOfGroups"
@@ -122,8 +122,8 @@ const Configure: React.FC = () => {
                 <span className="mx-2">Include Admins in groupings</span>
               </label>
             </div>
-            <div className="flex flex-col items-start w-full my-2">
-              <h2 className="h5 !my-2">Rounds</h2>
+            <div className="flex flex-col items-start w-full mb-2 mt-6">
+              <h2 className="h5 !mb-2">Rounds</h2>
               <label htmlFor="breakout-numOfRounds" className="flex items-center text-[#3b5166]">
                 <input
                   id="breakout-numOfRounds"
@@ -148,7 +148,7 @@ const Configure: React.FC = () => {
                   min={0}
                   max={10}
                   onChange={handleInputChange}
-                  className="border p-1 rounded-md text-center mx-1 w-16"
+                  className="border !p-1 rounded-md text-center mr-1"
                 />
                 <span className="ml-1 mr-2">min</span>
               </label>
@@ -161,7 +161,7 @@ const Configure: React.FC = () => {
                   min={0}
                   max={59}
                   onChange={handleInputChange}
-                  className="border p-1 rounded-md text-center mr-1 w-16"
+                  className="border !p-1 rounded-md text-center mr-1"
                 />
                 <span className="ml-1">sec</span>
               </label>
