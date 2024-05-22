@@ -50,16 +50,16 @@ const Home: React.FC = () => {
                 <Round />
               </div>
               {isAdmin && (
-                <>
+                <div className="w-full h-14 bottom-0 left-0 fixed flex justify-center items-start bg-white">
                   <button
                     onClick={handleEnd}
                     disabled={endLoading}
                     type="button"
-                    className="btn btn-enhanced mb-2 mt-8"
+                    className="btn btn-enhanced !w-72"
                   >
                     {endLoading ? "Ending..." : "End"}
                   </button>
-                </>
+                </div>
               )}
             </div>
           )}

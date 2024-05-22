@@ -16,7 +16,7 @@ const Configure: React.FC = () => {
   const [formData, setFormData] = useState({
     numOfGroups: 1,
     numOfRounds: 1,
-    minutes: 0,
+    minutes: 1,
     seconds: 0,
     includeAdmins: true,
   });
@@ -102,7 +102,7 @@ const Configure: React.FC = () => {
                   value={formData.numOfGroups}
                   onChange={handleInputChange}
                   min={1}
-                  max={sessionData ? Math.min(sessionData?.participants.length, 16) : 16}
+                  max={sessionData ? Math.max(Math.min(Math.floor(sessionData?.participants.length / 2), 16), 1) : 16}
                   className="border rounded-md text-center !p-1"
                 />
                 <span className="p-1 mx-2">Groups</span>
@@ -138,7 +138,7 @@ const Configure: React.FC = () => {
                 <span className="mx-2">Rounds, each</span>
               </label>
             </div>
-            <div className="flex items-center w-full">
+            <div className="flex items-center w-full pb-16">
               <label htmlFor="breakout-minutes" className="flex items-center text-[#3b5166]">
                 <input
                   id="breakout-minutes"
@@ -166,9 +166,11 @@ const Configure: React.FC = () => {
                 <span className="ml-1">sec</span>
               </label>
             </div>
-            <button type="submit" className="btn btn-enhanced mb-2 mt-8">
-              Start Breakout
-            </button>
+            <div className="w-full h-14 bottom-0 left-0 fixed flex justify-center items-start bg-white">
+              <button type="submit" className="btn btn-enhanced !w-72">
+                Start Breakout
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -206,7 +208,11 @@ const Configure: React.FC = () => {
               <button className="btn btn-danger-outline" onClick={() => setShowModal(false)}>
                 No
               </button>
-              <button className={`btn btn-success-outline ${startLoading ? 'hover:!text-[#d6dbdf] hover:!border-[#d6dbdf]' : ''}`} onClick={handleSubmit} disabled={startLoading}>
+              <button
+                className={`btn btn-success-outline ${startLoading ? "hover:!text-[#d6dbdf] hover:!border-[#d6dbdf]" : ""}`}
+                onClick={handleSubmit}
+                disabled={startLoading}
+              >
                 {startLoading ? "Starting..." : "Yes"}
               </button>
             </div>
