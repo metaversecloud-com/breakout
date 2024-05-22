@@ -203,10 +203,10 @@ const Configure: React.FC = () => {
               </p>
             </div>
             <div className="actions">
-              <button className="btn btn-outline" onClick={() => setShowModal(false)}>
-                Close
+              <button className="btn btn-danger-outline" onClick={() => setShowModal(false)}>
+                No
               </button>
-              <button className={`btn btn-danger-outline ${startLoading ? 'hover:!text-[#d6dbdf] hover:!border-[#d6dbdf]' : ''}`} onClick={handleSubmit} disabled={startLoading}>
+              <button className={`btn btn-success-outline ${startLoading ? 'hover:!text-[#d6dbdf] hover:!border-[#d6dbdf]' : ''}`} onClick={handleSubmit} disabled={startLoading}>
                 {startLoading ? "Starting..." : "Yes"}
               </button>
             </div>
