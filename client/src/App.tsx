@@ -12,6 +12,7 @@ import { InitialState, InteractiveParams, SET_BACKEND_API, SET_INTERACTIVE_PARAM
 // utils
 import { setupBackendAPI } from "./utils/backendAPI";
 import { checkInteractiveCredentials, checkIsAdmin, fetchDataObject } from "./context/actions";
+import Instructions from "./pages/Instructions";
 
 const App = () => {
   const navigate = useNavigate();
@@ -113,6 +114,7 @@ const App = () => {
     <div className="container p-6 flex flex-col items-center justify-center">
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/instructions" element={<Instructions />} />
         <Route path="*" element={<Error />} />
       </Routes>
     </div>

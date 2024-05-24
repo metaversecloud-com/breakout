@@ -7,6 +7,7 @@ import DottedLoader from "@/components/DottedLoader";
 import Configure from "@/components/Configure";
 import { endBreakout } from "@/context/actions";
 import { RESET_BREAKOUT, SET_INIT } from "@/context/types";
+import Header from "@/components/Header";
 
 const Home: React.FC = () => {
   const dispatch = useContext(GlobalDispatchContext);
@@ -31,9 +32,7 @@ const Home: React.FC = () => {
         <DottedLoader />
       ) : (
         <>
-          <img src="/bg.png" alt="background" className="w-80 h-44 rounded-3xl object-cover" />
-          <h1 className="h2 !mt-6 !mb-2 !font-semibold text-center">Breakout</h1>
-          <p className="p1 text-center">A fun speed networking experience.</p>
+          <Header />
           {sessionData?.status === "waiting" ? (
             isAdmin ? (
               <div className="w-full">
@@ -51,12 +50,7 @@ const Home: React.FC = () => {
               </div>
               {isAdmin && (
                 <div className="w-full h-14 bottom-0 left-0 fixed flex justify-center items-start bg-white">
-                  <button
-                    onClick={handleEnd}
-                    disabled={endLoading}
-                    type="button"
-                    className="btn btn-enhanced !w-72"
-                  >
+                  <button onClick={handleEnd} disabled={endLoading} type="button" className="btn btn-enhanced !w-72">
                     {endLoading ? "Ending..." : "End"}
                   </button>
                 </div>

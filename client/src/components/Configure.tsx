@@ -2,6 +2,7 @@ import { GlobalDispatchContext, GlobalStateContext } from "@/context/GlobalConte
 import { getParticipants, setBreakoutConfig } from "@/context/actions";
 import { InitialState, SET_BREAKOUT, SET_PARTICIPANT } from "@/context/types";
 import React, { useContext, useState } from "react";
+import { Link } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 
 const Configure: React.FC = () => {
@@ -75,6 +76,17 @@ const Configure: React.FC = () => {
       <div className="flex flex-col w-full">
         <div className="flex w-full !my-6 items-center justify-between">
           <h4 className="h4 !font-semibold text-center">Configure Breakout</h4>
+          <div className="flex flex-col items-center justify-start">
+            <Link
+              to={`/instructions`}
+              data-tooltip-id="instructions"
+              data-tooltip-content="Instructions"
+              className="btn btn-icon !p-0"
+              onClick={handleGetParticipants}
+            >
+              <img src="/info.svg" alt="info" className="w-6 h-6" />
+            </Link>
+          </div>
         </div>
         <div className="flex flex-col w-full">
           <h2 className="h5">Groups</h2>
@@ -219,7 +231,9 @@ const Configure: React.FC = () => {
           </div>
         </div>
       )}
+
       <Tooltip id="refresh" className="!bg-[#0a2540] text-white" />
+      <Tooltip id="instructions" className="!bg-[#0a2540] text-white" />
     </>
   );
 };
