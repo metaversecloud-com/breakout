@@ -11,7 +11,7 @@
     "ts-check": "tsc --noEmit"
   },
   "dependencies": {
-    "@rtsdk/topia": "^0.11.3",
+    "@rtsdk/topia": "^0.11.5",
     "axios": "^1.6.8",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",

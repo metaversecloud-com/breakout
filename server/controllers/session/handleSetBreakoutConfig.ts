@@ -1,7 +1,7 @@
 import { DroppedAsset, WorldActivity as IWorldActivity } from "@rtsdk/topia";
 import { Credentials } from "../../types/index.js";
 import { getDroppedAssetsBySceneDropId } from "../../utils/droppedAssets/getDroppedAssetsBySceneDropId.js";
-import { WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
+import { World, WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 import moveToLobby from "../../utils/session/moveToLobby.js";
 import getMatches from "../../utils/session/getMatches.js";
@@ -144,6 +144,16 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           status: "active",
         },
         {
+          analytics: [
+            {
+              analyticName: "starts",
+              urlSlug: credentials.urlSlug,
+            },
+            {
+              analyticName: `groupsOf${Math.max((participants.length - (participants.length % numOfGroups)) / numOfGroups, 2)}`,
+              urlSlug: credentials.urlSlug,
+            },
+          ],
           lock: {
             lockId,
             releaseLock: false,
@@ -185,14 +195,13 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               shouldIncludeAdminPermissions: true,
             });
 
-            const participants = Object.values(visitorsObj)
-              .filter((visitor) => {
-                if (!includeAdmins) {
-                  return !visitor.isAdmin;
-                }
-                return true;
-              })
-              .map((visitor) => visitor.profileId) as string[];
+            const includedVisitors = Object.values(visitorsObj).filter((visitor) => {
+              if (!includeAdmins) {
+                return !visitor.isAdmin;
+              }
+              return true;
+            });
+            const participants = includedVisitors.map((visitor) => visitor.profileId) as string[];
             if (participants.length < 2) {
               console.log(`Not enough participants to continue the breakout ${keyAsset.id}`);
               return;
@@ -208,7 +217,45 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             }, countdown * 1000);
             breakouts[keyAsset.id!].timeouts.push(timeout);
 
-            await openIframeForVisitors(visitorsObj, keyAsset.id!);
+            const promises = [];
+            promises.push(openIframeForVisitors(visitorsObj, keyAsset.id!));
+            const participantsAnalytics = includedVisitors.map((visitor) => {
+              return {
+                analyticName: "joinRound",
+                profileId: visitor.profileId as string,
+                uniqueKey: visitor.profileId as string,
+              };
+            });
+            const analyticParticlePromise = [
+              keyAsset.updateDataObject(
+                {},
+                {
+                  analytics: [
+                    {
+                      analyticName: "rounds",
+                    },
+                    ...participantsAnalytics,
+                  ],
+                },
+              ),
+            ];
+
+            if (process.env.NEW_ROUND_PARTICLE_EFFECT_NAME) {
+              const world = World.create(credentials.urlSlug, { credentials });
+              promises.push(
+                world.triggerParticle({
+                  name: process.env.NEW_ROUND_PARTICLE_EFFECT_NAME,
+                  duration: 5,
+                  position: keyAsset.position,
+                }),
+              );
+            }
+
+            Promise.allSettled(analyticParticlePromise)
+              .then()
+              .catch(() => console.error("Error sending analytics for round or showing particle effect"));
+
+            await Promise.all(promises);
 
             return { success: true, startTime };
           } catch (error) {
