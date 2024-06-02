@@ -133,7 +133,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       return res.status(400).json({ message: "Not enough participants" });
     }
 
-    await Promise.all([
+    await Promise.allSettled([
       keyAsset.updateDataObject(
         {
           ...keyAsset.dataObject!,
@@ -213,12 +213,20 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             );
 
             const timeout = setTimeout(() => {
+              const world = World.create(credentials.urlSlug, { credentials });
+              world
+                .triggerParticle({
+                  name: process.env.NEW_ROUND_PARTICLE_EFFECT_NAME || "firework2_purple",
+                  duration: 5,
+                  position: keyAsset.position,
+                })
+                .then()
+                .catch(() => console.error("Error: Cannot trigger particle"));
+
               placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
             }, countdown * 1000);
             breakouts[keyAsset.id!].timeouts.push(timeout);
 
-            const promises = [];
-            promises.push(openIframeForVisitors(visitorsObj, keyAsset.id!));
             const participantsAnalytics = includedVisitors.map((visitor) => {
               return {
                 analyticName: "joinRound",
@@ -226,8 +234,9 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
                 uniqueKey: visitor.profileId as string,
               };
             });
-            const analyticParticlePromise = [
-              keyAsset.updateDataObject(
+
+            keyAsset
+              .updateDataObject(
                 {},
                 {
                   analytics: [
@@ -237,25 +246,11 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
                     ...participantsAnalytics,
                   ],
                 },
-              ),
-            ];
-
-            if (process.env.NEW_ROUND_PARTICLE_EFFECT_NAME) {
-              const world = World.create(credentials.urlSlug, { credentials });
-              promises.push(
-                world.triggerParticle({
-                  name: process.env.NEW_ROUND_PARTICLE_EFFECT_NAME,
-                  duration: 5,
-                  position: keyAsset.position,
-                }),
-              );
-            }
-
-            Promise.allSettled(analyticParticlePromise)
+              )
               .then()
-              .catch(() => console.error("Error sending analytics for round or showing particle effect"));
+              .catch(() => console.error("Error sending analytics for round"));
 
-            await Promise.all(promises);
+            await openIframeForVisitors(visitorsObj, keyAsset.id!);
 
             return { success: true, startTime };
           } catch (error) {
@@ -339,6 +334,17 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     const matches = getMatches(true, keyAsset.id!, participants, breakouts);
 
     const timeout = setTimeout(() => {
+      const world = World.create(credentials.urlSlug, { credentials });
+
+      world
+        .triggerParticle({
+          name: process.env.NEW_ROUND_PARTICLE_EFFECT_NAME || "firework2_purple",
+          duration: 5,
+          position: keyAsset.position,
+        })
+        .then()
+        .catch(() => console.error("Error: Cannot trigger particle"));
+
       placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZonesAtStart);
     }, countdown * 1000);
     breakouts[keyAsset.id!].timeouts.push(timeout);

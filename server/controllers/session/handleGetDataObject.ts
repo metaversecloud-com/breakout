@@ -1,4 +1,4 @@
-import { WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
+import { World, WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 
 export default async function handleGetDataObject(req: Request, res: Response) {

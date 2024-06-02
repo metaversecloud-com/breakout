@@ -16,7 +16,7 @@ export default async function closeIframeForVisitors(visitors: { [key: string]: 
   }
   console.log(`Closing iframes for ${visitorsArr.length} visitors in ${droppedAssetId}`);
   try {
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
   } catch (error: any) {
     debugger;
     return errorHandler({

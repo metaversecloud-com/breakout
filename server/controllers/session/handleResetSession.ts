@@ -22,7 +22,7 @@ export default async function handleResetSession(req: Request, res: Response) {
     const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
     const lockId = `${keyAsset.id}_${timeFactor}`;
 
-    await Promise.all([
+    await Promise.allSettled([
       keyAsset.updateDataObject(
         { ...defaultDataObject, landmarkZoneId: keyAsset.dataObject.landmarkZoneId },
         {

@@ -51,7 +51,7 @@ export default async function placeVisitors(
   }
   console.log(`Placing ${participants.length} participants into ${matches.length} groups for ${assetId}`);
   try {
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
   } catch (error) {
     debugger;
     return errorHandler({

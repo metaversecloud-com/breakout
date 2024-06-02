@@ -22,7 +22,7 @@ export default async function openIframeForVisitors(visitors: { [key: string]: V
   }
   console.log(`Opening iframes for ${visitorsArr.length} visitors in ${droppedAssetId}`);
   try {
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
   } catch (error: any) {
     debugger;
     return errorHandler({

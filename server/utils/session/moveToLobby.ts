@@ -18,7 +18,7 @@ export default async function moveToLobby(visitorsObj: { [key: string]: Visitor 
   });
   console.log(`Moving ${visitors.length} visitors to lobby for ${keyAssetId}`);
   try {
-    await Promise.all(promises);
+    await Promise.allSettled(promises);
   } catch (error: any) {
     debugger;
     return errorHandler({
