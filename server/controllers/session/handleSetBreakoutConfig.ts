@@ -120,18 +120,26 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       droppedAssetId: keyAsset.dataObject!.landmarkZoneId,
       shouldIncludeAdminPermissions: true,
     });
-    const participants = Object.values(visitorsObj)
-      .filter((visitor) => {
-        if (!includeAdmins) {
-          return !visitor.isAdmin;
-        }
-        return true;
-      })
-      .map((visitor) => visitor.profileId) as string[];
+    const includedVisitors = Object.values(visitorsObj).filter((visitor) => {
+      if (!includeAdmins) {
+        return !visitor.isAdmin;
+      }
+      return true;
+    });
+    const participants = includedVisitors.map((visitor) => visitor.profileId) as string[];
+
     if (participants.length < 2) {
       console.log(`Not enough participants to start the breakout ${keyAsset.id}`);
       return res.status(400).json({ message: "Not enough participants" });
     }
+
+    const participantsAnalytics = includedVisitors.map((visitor) => {
+      return {
+        analyticName: "joinRound",
+        profileId: visitor.profileId as string,
+        uniqueKey: visitor.profileId as string,
+      };
+    });
 
     await Promise.allSettled([
       keyAsset.updateDataObject(
@@ -153,6 +161,10 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               analyticName: `groupsOf${Math.max((participants.length - (participants.length % numOfGroups)) / numOfGroups, 2)}`,
               urlSlug: credentials.urlSlug,
             },
+            {
+              analyticName: "rounds",
+            },
+            ...participantsAnalytics,
           ],
           lock: {
             lockId,
