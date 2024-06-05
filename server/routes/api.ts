@@ -20,12 +20,16 @@ router.get("/system/health", (req, res) => {
     appVersion: getVersion(),
     status: "OK",
     envs: {
+      SERVER_START_DATE: new Date(),
       NODE_ENV: process.env.NODE_ENV,
       INSTANCE_DOMAIN: process.env.INSTANCE_DOMAIN ? process.env.INSTANCE_DOMAIN : "NOT SET",
       INTERACTIVE_KEY: process.env.INTERACTIVE_KEY ? process.env.INTERACTIVE_KEY : "NOT SET",
       INTERACTIVE_SECRET: process.env.INTERACTIVE_SECRET ? "SET" : "NOT SET",
       APP_URL: process.env.APP_URL ? process.env.APP_URL : "NOT SET",
       COMMIT_HASH: process.env.COMMIT_HASH ? process.env.COMMIT_HASH : "NOT SET",
+      NEW_ROUND_PARTICLE_EFFECT_NAME: process.env.NEW_ROUND_PARTICLE_EFFECT_NAME
+        ? process.env.NEW_ROUND_PARTICLE_EFFECT_NAME
+        : "NOT SET",
     },
   });
 });
