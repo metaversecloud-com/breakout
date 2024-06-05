@@ -10,7 +10,7 @@ import handleGetParticipantsInZone from "../controllers/session/handleGetPartici
 import handleCloseIframe from "../controllers/session/handleCloseIframe.js";
 
 const router = express.Router();
-
+const SERVER_START_DATE = new Date();
 router.get("/", (req, res) => {
   res.json({ message: "Hello from server!" });
 });
@@ -20,7 +20,7 @@ router.get("/system/health", (req, res) => {
     appVersion: getVersion(),
     status: "OK",
     envs: {
-      SERVER_START_DATE: new Date(),
+      SERVER_START_DATE,
       NODE_ENV: process.env.NODE_ENV,
       INSTANCE_DOMAIN: process.env.INSTANCE_DOMAIN ? process.env.INSTANCE_DOMAIN : "NOT SET",
       INTERACTIVE_KEY: process.env.INTERACTIVE_KEY ? process.env.INTERACTIVE_KEY : "NOT SET",
