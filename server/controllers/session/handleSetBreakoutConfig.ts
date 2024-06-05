@@ -228,7 +228,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               const world = World.create(credentials.urlSlug, { credentials });
               world
                 .triggerParticle({
-                  name: process.env.NEW_ROUND_PARTICLE_EFFECT_NAME || "firework2_purple",
+                  name: "firework2_purple",
                   duration: 5,
                   position: keyAsset.position,
                 })
@@ -350,7 +350,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
 
       world
         .triggerParticle({
-          name: process.env.NEW_ROUND_PARTICLE_EFFECT_NAME || "firework2_purple",
+          name: "firework2_purple",
           duration: 5,
           position: keyAsset.position,
         })

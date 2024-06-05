@@ -27,9 +27,6 @@ router.get("/system/health", (req, res) => {
       INTERACTIVE_SECRET: process.env.INTERACTIVE_SECRET ? "SET" : "NOT SET",
       APP_URL: process.env.APP_URL ? process.env.APP_URL : "NOT SET",
       COMMIT_HASH: process.env.COMMIT_HASH ? process.env.COMMIT_HASH : "NOT SET",
-      NEW_ROUND_PARTICLE_EFFECT_NAME: process.env.NEW_ROUND_PARTICLE_EFFECT_NAME
-        ? process.env.NEW_ROUND_PARTICLE_EFFECT_NAME
-        : "NOT SET",
     },
   });
 });
