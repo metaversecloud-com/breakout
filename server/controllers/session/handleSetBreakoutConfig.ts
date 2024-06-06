@@ -140,7 +140,6 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
         uniqueKey: visitor.profileId as string,
       };
     });
-
     await Promise.allSettled([
       keyAsset.updateDataObject(
         {

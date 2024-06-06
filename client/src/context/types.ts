@@ -6,6 +6,7 @@ export const SET_INIT = "SET_INIT";
 export const SET_BREAKOUT = "SET_BREAKOUT";
 export const RESET_BREAKOUT = "RESET_BREAKOUT";
 export const SET_PARTICIPANT = "SET_PARTICIPANT";
+export const SET_TIMER_AND_TIMEOUT = "SET_TIMER_AND_TIMEOUT";
 
 export type InteractiveParams = {
   assetId: string;
@@ -37,6 +38,8 @@ export interface InitialState {
     participants: Participant[];
     startTime: number;
     status: string;
+    timer: NodeJS.Timeout | null;
+    timeout: NodeJS.Timeout | null;
   } | null;
 }
 

@@ -1,6 +1,6 @@
-import { GlobalStateContext } from "@/context/GlobalContext";
+import { GlobalDispatchContext, GlobalStateContext } from "@/context/GlobalContext";
 import { closeIframe } from "@/context/actions";
-import { InitialState } from "@/context/types";
+import { InitialState, SET_TIMER_AND_TIMEOUT } from "@/context/types";
 import React, { useContext, useEffect, useState } from "react";
 
 const countdownInit = 20;
@@ -10,6 +10,7 @@ const Round: React.FC = () => {
   const [isCountdownPeriod, setIsCountdownPeriod] = useState(false);
 
   const [isSessionStarted, setIsSessionStarted] = useState(false);
+  const dispatch = useContext(GlobalDispatchContext);
 
   const roundStartTimes = sessionData?.numOfRounds
     ? Array.from(
@@ -56,15 +57,16 @@ const Round: React.FC = () => {
         setTimeLeft(timeLeft);
       }, 1000);
 
-      setTimeout(
-        () => {         
+      const timeout = setTimeout(
+        () => {
           closeIframe(backendAPI!);
-          clearInterval(timer);
+          clearInterval(timer!);
         },
 
         (sessionData.secondsPerRound + countdownInit) * 1000 * sessionData.numOfRounds -
           (Date.now() - sessionData.startTime),
       );
+      dispatch!({ type: SET_TIMER_AND_TIMEOUT, payload: { timer, timeout } });
 
       setIsSessionStarted(true);
     }
