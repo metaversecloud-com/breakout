@@ -113,6 +113,7 @@ const Configure: React.FC = () => {
                   name="numOfGroups"
                   value={formData.numOfGroups}
                   onChange={handleInputChange}
+                  required
                   min={1}
                   max={sessionData ? Math.max(Math.min(Math.floor(sessionData?.participants.length / 2), 16), 1) : 16}
                   className="border rounded-md text-center !p-1"
@@ -127,6 +128,7 @@ const Configure: React.FC = () => {
                   id="breakout-include-admin"
                   className="input input-checkbox !p-2 !rounded-none"
                   name="includeAdmins"
+                  required
                   type="checkbox"
                   checked={formData.includeAdmins}
                   onChange={handleInputChange}
@@ -141,6 +143,7 @@ const Configure: React.FC = () => {
                   id="breakout-numOfRounds"
                   type="number"
                   name="numOfRounds"
+                  required
                   min={1}
                   max={25}
                   value={formData.numOfRounds}
@@ -157,6 +160,7 @@ const Configure: React.FC = () => {
                   type="number"
                   name="minutes"
                   value={formData.minutes}
+                  required
                   min={0}
                   max={10}
                   onChange={handleInputChange}
@@ -170,6 +174,7 @@ const Configure: React.FC = () => {
                   type="number"
                   name="seconds"
                   value={formData.seconds}
+                  required
                   min={0}
                   max={59}
                   onChange={handleInputChange}
