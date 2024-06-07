@@ -1,35 +1,35 @@
-# README Template
-
-Please update the following in each of your SDK application.
+# Breakout
 
 ## Introduction / Summary
 
-This boilerplate is meant to give you a simple starting point to build new features in Topia using our Javascript SDK. Please reference the [documentation](https://metaversecloud-com.github.io/mc-sdk-js/index.html) for a more detailed breakdown of what the SDK is capable of and how to use it!
+Breakout is a fun speed networking experience.
 
 ## Key Features
 
+- Be assigned into groups which will switch in timed intervals
+- Admins set the configurations
+- Be nice and interact with your partners
+
 ### Canvas elements & interactions
 
-- Key Asset: When clicked this asset will open the drawer and allow users and admins to start interacting with the app.
+- Key Asset - Breakout Sign: When clicked this asset will open the drawer and allow users and admins to start interacting with the app.
 
 ### Drawer content
 
-- How to play instructions
-- Leaderboard
-- Admin features (see below)
+- How to configure instructions
+- Configuration Screen
+- Countdowns and Round Counter
 
 ### Admin features
 
-_Does your app have special admin functionality? If so your key features may looks something like this:_
-
 - Access: Click on the key asset to open the drawer and then select the Admin tab. Any changes you make here will only affect this instance of the application and will not impact other instances dropped in this or other worlds.
-- Theme selection: Use the dropdown to select a theme.
-- Reset: Click on the Reset button to clear the active game state and rebuild the game board in it's default state.
 
-### Themes description
+- Admins can configure and start a breakout session. Anyone who is in the breakout area at the start of a round will be included in the experience.
+-  The number of groups may be adjusted at the start of a round to account for the increase or decrease in the number of participants.
+-  The Admin who started the breakout session cannot leave the world while the session is in progress, otherwise it will be halted.
 
-- Winter (default): A snowy theme that when selected will drop snowflakes throughout the scene
-- Spring: A garden theme that when selected will drop flowers throughout the scene
+
+
 
 ### Data objects
 
@@ -56,7 +56,9 @@ _We use data objects to store information about each implementation of the app p
 - Run `npm i` in server
 - `cd client`
 - Run `npm i` in client
-- `cd ..` back to server
+- `cd ..` back to project root
+- Run `npm i` in project root
+- Run `npm run dev`
 
 ### Add your .env environmental variables
 
@@ -80,5 +82,5 @@ INTERACTIVE_SECRET=xxxxxxxxxxxxxx
 - [View it in action!](topia.io/appname-prod)
 - [Notion One Pager](https://www.notion.so/topiaio/6257c74f9532449b842cfe557975c826?v=8cdffb024588478caeee0cecb8989e82&pvs=4)
 - To see an example of an on canvas turn based game check out TicTacToe:
-  - (github))[https://github.com/metaversecloud-com/sdk-tictactoe]
-  - (demo))[https://topia.io/tictactoe-prod]
+  - [github](https://github.com/metaversecloud-com/sdk-tictactoe)
+  - [demo](https://topia.io/tictactoe-prod)

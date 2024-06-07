@@ -2,6 +2,7 @@ import { GlobalDispatchContext, GlobalStateContext } from "@/context/GlobalConte
 import { getParticipants, setBreakoutConfig } from "@/context/actions";
 import { InitialState, SET_BREAKOUT, SET_PARTICIPANT } from "@/context/types";
 import React, { useContext, useState } from "react";
+import { Link } from "react-router-dom";
 import { Tooltip } from "react-tooltip";
 
 const Configure: React.FC = () => {
@@ -16,7 +17,7 @@ const Configure: React.FC = () => {
   const [formData, setFormData] = useState({
     numOfGroups: 1,
     numOfRounds: 1,
-    minutes: 0,
+    minutes: 1,
     seconds: 0,
     includeAdmins: true,
   });
@@ -73,8 +74,19 @@ const Configure: React.FC = () => {
     <>
       {/* <AdminControls /> */}
       <div className="flex flex-col w-full">
-        <div className="flex w-full !my-8 items-center justify-between">
+        <div className="flex w-full !my-6 items-center justify-between">
           <h4 className="h4 !font-semibold text-center">Configure Breakout</h4>
+          <div className="flex flex-col items-center justify-start">
+            <Link
+              to={`/instructions`}
+              data-tooltip-id="instructions"
+              data-tooltip-content="Instructions"
+              className="btn btn-icon !p-0"
+              onClick={handleGetParticipants}
+            >
+              <img src="/info.svg" alt="info" className="w-6 h-6" />
+            </Link>
+          </div>
         </div>
         <div className="flex flex-col w-full">
           <h2 className="h5">Groups</h2>
@@ -93,7 +105,7 @@ const Configure: React.FC = () => {
             </div>
           </div>
           <form onSubmit={handleConfirmation} className="flex flex-col w-full">
-            <div className="flex items-center w-full my-2">
+            <div className="flex items-center w-full my-1">
               <label className="flex items-center text-[#3b5166]" htmlFor="breakout-numOfGroups">
                 <input
                   id="breakout-numOfGroups"
@@ -101,8 +113,9 @@ const Configure: React.FC = () => {
                   name="numOfGroups"
                   value={formData.numOfGroups}
                   onChange={handleInputChange}
+                  required
                   min={1}
-                  max={sessionData ? Math.min(sessionData?.participants.length, 16) : 16}
+                  max={sessionData ? Math.max(Math.min(Math.floor(sessionData?.participants.length / 2), 16), 1) : 16}
                   className="border rounded-md text-center !p-1"
                 />
                 <span className="p-1 mx-2">Groups</span>
@@ -115,6 +128,7 @@ const Configure: React.FC = () => {
                   id="breakout-include-admin"
                   className="input input-checkbox !p-2 !rounded-none"
                   name="includeAdmins"
+                  required
                   type="checkbox"
                   checked={formData.includeAdmins}
                   onChange={handleInputChange}
@@ -122,13 +136,14 @@ const Configure: React.FC = () => {
                 <span className="mx-2">Include Admins in groupings</span>
               </label>
             </div>
-            <div className="flex flex-col items-start w-full my-2">
-              <h2 className="h5 !my-2">Rounds</h2>
+            <div className="flex flex-col items-start w-full mb-2 mt-6">
+              <h2 className="h5 !mb-2">Rounds</h2>
               <label htmlFor="breakout-numOfRounds" className="flex items-center text-[#3b5166]">
                 <input
                   id="breakout-numOfRounds"
                   type="number"
                   name="numOfRounds"
+                  required
                   min={1}
                   max={25}
                   value={formData.numOfRounds}
@@ -138,15 +153,18 @@ const Configure: React.FC = () => {
                 <span className="mx-2">Rounds, each</span>
               </label>
             </div>
-            <div className="flex items-center w-full">
+            <div className="flex items-center w-full pb-16">
               <label htmlFor="breakout-minutes" className="flex items-center text-[#3b5166]">
                 <input
                   id="breakout-minutes"
                   type="number"
                   name="minutes"
                   value={formData.minutes}
+                  required
+                  min={0}
+                  max={10}
                   onChange={handleInputChange}
-                  className="border p-1 rounded-md text-center mx-1 w-16"
+                  className="border !p-1 rounded-md text-center mr-1"
                 />
                 <span className="ml-1 mr-2">min</span>
               </label>
@@ -156,15 +174,20 @@ const Configure: React.FC = () => {
                   type="number"
                   name="seconds"
                   value={formData.seconds}
+                  required
+                  min={0}
+                  max={59}
                   onChange={handleInputChange}
-                  className="border p-1 rounded-md text-center mr-1 w-16"
+                  className="border !p-1 rounded-md text-center mr-1"
                 />
                 <span className="ml-1">sec</span>
               </label>
             </div>
-            <button type="submit" className="btn btn-enhanced mb-2 mt-8">
-              Start Breakout
-            </button>
+            <div className="w-full h-14 bottom-0 left-0 fixed flex justify-center items-start bg-white">
+              <button type="submit" className="btn btn-enhanced !w-72">
+                Start Breakout
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -177,33 +200,45 @@ const Configure: React.FC = () => {
 
             <div className="flex flex-col items-start justify-center">
               <p className="p2">
-                <span className="font-semibold">Number of Participants:</span> {sessionData?.participants.length}
+                <span className={`font-semibold ${sessionData?.participants.length === 1 ? "text-red-500" : ""}`}>
+                  Number of Participants: {sessionData?.participants.length}
+                </span>
               </p>
               <p className="p2">
-                <span className="font-semibold">Number of Groups:</span> {formData.numOfGroups}
+                <span className="font-semibold">Number of Groups: {formData.numOfGroups}</span>
               </p>
               <p className="p2">
-                <span className="font-semibold">Number of Rounds:</span> {formData.numOfRounds}
+                <span className="font-semibold">Number of Rounds: {formData.numOfRounds}</span>
               </p>
               <p className="p2">
-                <span className="font-semibold">Time per Round:</span> {formData.minutes} min {formData.seconds} sec
+                <span
+                  className={`font-semibold ${60 * parseInt(formData.minutes) + parseInt(formData.seconds) > 600 || 60 * parseInt(formData.minutes) + parseInt(formData.seconds) < 10 ? "text-red-500" : ""}`}
+                >
+                  Time per Round: {formData.minutes} min {formData.seconds} sec
+                </span>
               </p>
               <p className="p2">
-                <span className="font-semibold">Include Admins:</span> {formData.includeAdmins ? "Yes" : "No"}
+                <span className="font-semibold">Include Admins: {formData.includeAdmins ? "Yes" : "No"}</span>
               </p>
             </div>
             <div className="actions">
-              <button className="btn btn-outline" onClick={() => setShowModal(false)}>
-                Close
+              <button className="btn btn-danger-outline" onClick={() => setShowModal(false)}>
+                No
               </button>
-              <button className="btn btn-danger-outline" onClick={handleSubmit} disabled={startLoading}>
+              <button
+                className={`btn btn-success-outline ${startLoading ? "hover:!text-[#d6dbdf] hover:!border-[#d6dbdf]" : ""}`}
+                onClick={handleSubmit}
+                disabled={startLoading}
+              >
                 {startLoading ? "Starting..." : "Yes"}
               </button>
             </div>
           </div>
         </div>
       )}
+
       <Tooltip id="refresh" className="!bg-[#0a2540] text-white" />
+      <Tooltip id="instructions" className="!bg-[#0a2540] text-white" />
     </>
   );
 };

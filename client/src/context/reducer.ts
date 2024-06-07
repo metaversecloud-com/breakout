@@ -7,6 +7,7 @@ import {
   SET_BREAKOUT,
   RESET_BREAKOUT,
   SET_PARTICIPANT,
+  SET_TIMER_AND_TIMEOUT,
 } from "./types";
 
 const globalReducer = (state: InitialState, action: ActionType) => {
@@ -65,6 +66,9 @@ const globalReducer = (state: InitialState, action: ActionType) => {
       },
     };
   } else if (type === RESET_BREAKOUT) {
+    clearInterval(state.sessionData!.timer!);
+    clearTimeout(state.sessionData!.timeout!);
+
     return {
       ...state,
       sessionData: {
@@ -73,6 +77,8 @@ const globalReducer = (state: InitialState, action: ActionType) => {
         secondsPerRound: 0,
         startTime: 0,
         status: "waiting",
+        timer: null,
+        timeout: null,
       },
     };
   } else if (type === SET_PARTICIPANT) {
@@ -81,6 +87,15 @@ const globalReducer = (state: InitialState, action: ActionType) => {
       sessionData: {
         ...state.sessionData,
         participants: payload.participants,
+      },
+    };
+  } else if (type === SET_TIMER_AND_TIMEOUT) {
+    return {
+      ...state,
+      sessionData: {
+        ...state.sessionData,
+        timer: payload.timer,
+        timeout: payload.timeout,
       },
     };
   } else {

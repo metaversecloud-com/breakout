@@ -1,4 +1,3 @@
-import React from "react";
 import ReactDOM from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import GlobalProvider from "./context/GlobalProvider";
@@ -10,9 +9,9 @@ import "./index.css";
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <GlobalProvider>
     <BrowserRouter>
-      <React.StrictMode>
+      {/* <React.StrictMode> */}
         <App />
-      </React.StrictMode>
+      {/* </React.StrictMode> */}
     </BrowserRouter>
   </GlobalProvider>,
 );

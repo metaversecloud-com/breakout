@@ -1,7 +1,7 @@
 import { DroppedAsset, WorldActivity as IWorldActivity } from "@rtsdk/topia";
 import { Credentials } from "../../types/index.js";
 import { getDroppedAssetsBySceneDropId } from "../../utils/droppedAssets/getDroppedAssetsBySceneDropId.js";
-import { WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
+import { World, WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 import moveToLobby from "../../utils/session/moveToLobby.js";
 import getMatches from "../../utils/session/getMatches.js";
@@ -70,70 +70,77 @@ setInterval(() => {
 }, 1000);
 
 export default async function handleSetBreakoutConfig(req: Request, res: Response) {
-  const credentials = getCredentials(req.query);
-
-  const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
-  const numOfRounds = Math.min(parseInt(req.body.numOfRounds), 25);
-  const minutes = parseInt(req.body.minutes);
-  const seconds = parseInt(req.body.seconds);
-  const includeAdmins = req.body.includeAdmins;
-
-  if (
-    isNaN(minutes) ||
-    isNaN(seconds) ||
-    60 * minutes + seconds < 10 ||
-    isNaN(numOfGroups) ||
-    isNaN(numOfRounds) ||
-    numOfGroups < 1 ||
-    numOfRounds < 1
-  ) {
-    console.log(`Invalid configuration for ${credentials.assetId}`);
-    return res.status(400).json({ message: "Invalid configuration" });
-  }
-
-  const [keyAsset, breakoutScene]: [IDroppedAsset, DroppedAsset[]] = await Promise.all([
-    getDroppedAsset(credentials),
-    getDroppedAssetsBySceneDropId(credentials, credentials.sceneDropId),
-  ]);
-
-  const privateZonesAtStart = breakoutScene.filter(
-    (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
-  ) as DroppedAsset[];
-  const landmarkZone = breakoutScene.find(
-    (droppedAsset: DroppedAsset) => droppedAsset.isLandmarkZoneEnabled,
-  ) as DroppedAsset;
-
-  const worldActivityAtStart = WorldActivity.create(credentials.urlSlug, {
-    credentials: {
-      interactiveNonce: credentials.interactiveNonce,
-      interactivePublicKey: credentials.interactivePublicKey,
-      visitorId: credentials.visitorId,
-    },
-  });
-
-  const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
-  const lockId = `${keyAsset.id!}_${timeFactor}`;
-  const startTime = Date.now();
-
   try {
+    const credentials = getCredentials(req.query);
+
+    const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
+    const numOfRounds = Math.min(parseInt(req.body.numOfRounds), 25);
+    const minutes = parseInt(req.body.minutes);
+    const seconds = parseInt(req.body.seconds);
+    const includeAdmins = req.body.includeAdmins;
+
+    if (
+      isNaN(minutes) ||
+      isNaN(seconds) ||
+      60 * minutes + seconds < 10 ||
+      60 * minutes + seconds > 600 ||
+      isNaN(numOfGroups) ||
+      isNaN(numOfRounds) ||
+      numOfGroups < 1 ||
+      numOfRounds < 1
+    ) {
+      console.log(`Invalid configuration for ${credentials.assetId}`);
+      return res.status(400).json({ message: "Invalid configuration" });
+    }
+    const [keyAsset, breakoutScene]: [IDroppedAsset, DroppedAsset[]] = await Promise.all([
+      getDroppedAsset(credentials),
+      getDroppedAssetsBySceneDropId(credentials, credentials.sceneDropId),
+    ]);
+
+    const privateZonesAtStart = breakoutScene.filter(
+      (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
+    ) as DroppedAsset[];
+    const landmarkZone = breakoutScene.find(
+      (droppedAsset: DroppedAsset) => droppedAsset.isLandmarkZoneEnabled,
+    ) as DroppedAsset;
+
+    const worldActivityAtStart = WorldActivity.create(credentials.urlSlug, {
+      credentials: {
+        interactiveNonce: credentials.interactiveNonce,
+        interactivePublicKey: credentials.interactivePublicKey,
+        visitorId: credentials.visitorId,
+      },
+    });
+
+    const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
+    const lockId = `${keyAsset.id!}_${timeFactor}`;
+    const startTime = Date.now();
+
     const visitorsObj = await worldActivityAtStart.fetchVisitorsInZone({
       droppedAssetId: keyAsset.dataObject!.landmarkZoneId,
       shouldIncludeAdminPermissions: true,
     });
-    const participants = Object.values(visitorsObj)
-      .filter((visitor) => {
-        if (!includeAdmins) {
-          return !visitor.isAdmin;
-        }
-        return true;
-      })
-      .map((visitor) => visitor.profileId) as string[];
+    const includedVisitors = Object.values(visitorsObj).filter((visitor) => {
+      if (!includeAdmins) {
+        return !visitor.isAdmin;
+      }
+      return true;
+    });
+    const participants = includedVisitors.map((visitor) => visitor.profileId) as string[];
+
     if (participants.length < 2) {
       console.log(`Not enough participants to start the breakout ${keyAsset.id}`);
       return res.status(400).json({ message: "Not enough participants" });
     }
 
-    await Promise.all([
+    const participantsAnalytics = includedVisitors.map((visitor) => {
+      return {
+        analyticName: "joinRound",
+        profileId: visitor.profileId as string,
+        uniqueKey: visitor.profileId as string,
+      };
+    });
+    await Promise.allSettled([
       keyAsset.updateDataObject(
         {
           ...keyAsset.dataObject!,
@@ -144,6 +151,20 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           status: "active",
         },
         {
+          analytics: [
+            {
+              analyticName: "starts",
+              urlSlug: credentials.urlSlug,
+            },
+            {
+              analyticName: `groupsOf${Math.max((participants.length - (participants.length % numOfGroups)) / numOfGroups, 2)}`,
+              urlSlug: credentials.urlSlug,
+            },
+            {
+              analyticName: "rounds",
+            },
+            ...participantsAnalytics,
+          ],
           lock: {
             lockId,
             releaseLock: false,
@@ -185,14 +206,13 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               shouldIncludeAdminPermissions: true,
             });
 
-            const participants = Object.values(visitorsObj)
-              .filter((visitor) => {
-                if (!includeAdmins) {
-                  return !visitor.isAdmin;
-                }
-                return true;
-              })
-              .map((visitor) => visitor.profileId) as string[];
+            const includedVisitors = Object.values(visitorsObj).filter((visitor) => {
+              if (!includeAdmins) {
+                return !visitor.isAdmin;
+              }
+              return true;
+            });
+            const participants = includedVisitors.map((visitor) => visitor.profileId) as string[];
             if (participants.length < 2) {
               console.log(`Not enough participants to continue the breakout ${keyAsset.id}`);
               return;
@@ -204,9 +224,42 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             );
 
             const timeout = setTimeout(() => {
+              const world = World.create(credentials.urlSlug, { credentials });
+              world
+                .triggerParticle({
+                  name: "firework2_purple",
+                  duration: 5,
+                  position: keyAsset.position,
+                })
+                .then()
+                .catch(() => console.error("Error: Cannot trigger particle"));
+
               placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
             }, countdown * 1000);
             breakouts[keyAsset.id!].timeouts.push(timeout);
+
+            const participantsAnalytics = includedVisitors.map((visitor) => {
+              return {
+                analyticName: "joinRound",
+                profileId: visitor.profileId as string,
+                uniqueKey: visitor.profileId as string,
+              };
+            });
+
+            keyAsset
+              .updateDataObject(
+                {},
+                {
+                  analytics: [
+                    {
+                      analyticName: "rounds",
+                    },
+                    ...participantsAnalytics,
+                  ],
+                },
+              )
+              .then()
+              .catch(() => console.error("Error sending analytics for round"));
 
             await openIframeForVisitors(visitorsObj, keyAsset.id!);
 
@@ -292,6 +345,17 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     const matches = getMatches(true, keyAsset.id!, participants, breakouts);
 
     const timeout = setTimeout(() => {
+      const world = World.create(credentials.urlSlug, { credentials });
+
+      world
+        .triggerParticle({
+          name: "firework2_purple",
+          duration: 5,
+          position: keyAsset.position,
+        })
+        .then()
+        .catch(() => console.error("Error: Cannot trigger particle"));
+
       placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZonesAtStart);
     }, countdown * 1000);
     breakouts[keyAsset.id!].timeouts.push(timeout);
