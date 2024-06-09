@@ -89,11 +89,11 @@ const match = (
     const randomIndex = Math.floor(Math.random() * currentAllPossible.length);
     const match = currentAllPossible.splice(randomIndex, 1)[0];
     match?.forEach((el) => {
-      matchesObj[el].push(match);
+      matchesObj[el].push(match.slice());
       const allPossibleForCurrent = temp.filter((m) => m.includes(el));
       temp = difference(temp, allPossibleForCurrent);
     });
-    allMatches.push(match);
+    allMatches.push(match.slice());
     if (allMatches.length === 16) {
       break;
     }
