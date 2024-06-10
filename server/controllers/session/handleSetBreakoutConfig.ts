@@ -77,6 +77,7 @@ const getAnalytics = (includedVisitors: Visitor[], matches: string[][], urlSlug:
       uniqueKey: visitor.profileId as string,
     };
   });
+  
   const groupSizeAnalytics: { [key: string]: AnalyticType } = {};
   matches.forEach((match) => {
     const analyticName = `groupsOf${match.length}`;
