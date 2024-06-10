@@ -1,5 +1,4 @@
 import express from "express";
-import { handleCheckInteractiveCredentials } from "../controllers/index.js";
 import { getVersion } from "../utils/getVersion.js";
 import isAdminCheck from "../controllers/status/isAdminCheck.js";
 import handleGetDataObject from "../controllers/session/handleGetDataObject.js";
@@ -8,6 +7,7 @@ import handleSetBreakoutConfig from "../controllers/session/handleSetBreakoutCon
 import handleResetSession from "../controllers/session/handleResetSession.js";
 import handleGetParticipantsInZone from "../controllers/session/handleGetParticipantsInZone.js";
 import handleCloseIframe from "../controllers/session/handleCloseIframe.js";
+import handleCheckInteractiveCredentials from "../controllers/config/handleCheckInteractiveCredentials.js";
 
 const router = express.Router();
 const SERVER_START_DATE = new Date();
