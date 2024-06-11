@@ -3,7 +3,7 @@ import { closeIframe } from "@/context/actions";
 import { InitialState, SET_TIMER_AND_TIMEOUT } from "@/context/types";
 import React, { useContext, useEffect, useState } from "react";
 
-const countdownInit = 20;
+const countdownInit = 10;
 
 const Round: React.FC = () => {
   const { sessionData, backendAPI } = useContext(GlobalStateContext) as InitialState;
