@@ -25,7 +25,7 @@ const globalReducer = (state: InitialState, action: ActionType) => {
     };
   } else if (type === SET_INIT) {
     if (
-      payload.dataObject.startTime + (payload.dataObject.secondsPerRound + 20) * 1000 * payload.dataObject.numOfRounds <
+      payload.dataObject.startTime + (payload.dataObject.secondsPerRound + 10) * 1000 * payload.dataObject.numOfRounds <
       Date.now()
     ) {
       return {

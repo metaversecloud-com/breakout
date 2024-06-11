@@ -54,7 +54,7 @@ export const updateAdminCredentials = (credentials: Credentials) => {
   }
 };
 
-const countdown = 20;
+const countdown = 10;
 
 setInterval(() => {
   for (const key in breakouts) {
