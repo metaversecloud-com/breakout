@@ -24,7 +24,7 @@ function includesAny(arr: string[], elements: string[]) {
   return elements.some((element) => arr.includes(element));
 }
 
-function shuffleArray(array: string[]) {
+export function shuffleArray(array: any[]) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];

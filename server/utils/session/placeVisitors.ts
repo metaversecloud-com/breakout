@@ -1,6 +1,7 @@
 import { DroppedAsset, Visitor } from "@rtsdk/topia";
 import { Breakouts } from "../../controllers/session/handleSetBreakoutConfig.js";
 import { errorHandler } from "../errorHandler.js";
+import { shuffleArray } from "../arrangement.js";
 
 export default async function placeVisitors(
   matches: string[][],
@@ -15,6 +16,7 @@ export default async function placeVisitors(
   if (!breakouts[assetId]) {
     return;
   }
+  shuffleArray(privateZones);
   const privateZoneCoordinates = privateZones.map((zone: DroppedAsset) => [zone.position!.x, zone.position!.y]);
   const promises: Promise<any>[] = [];
   if (matches && matches.length > 0) {
