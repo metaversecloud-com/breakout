@@ -225,6 +225,7 @@ const Configure: React.FC = () => {
                 <span className="font-semibold">Include Admins: {formData.includeAdmins ? "Yes" : "No"}</span>
               </p>
             </div>
+            <p className="p3 text-start">*The lines highlighted in red indicate invalid configurations.</p>
             <div className="actions">
               <button className="btn btn-danger-outline" onClick={() => setShowModal(false)}>
                 No
