@@ -70,6 +70,13 @@ const Configure: React.FC = () => {
     setGetParticipantsLoading(false);
   };
 
+  const isRoundTimeInvalid = () => {
+    return (
+      60 * parseInt(formData.minutes) + parseInt(formData.seconds) > 600 ||
+      60 * parseInt(formData.minutes) + parseInt(formData.seconds) < 10
+    );
+  };
+
   return (
     <>
       {/* <AdminControls /> */}
@@ -128,7 +135,6 @@ const Configure: React.FC = () => {
                   id="breakout-include-admin"
                   className="input input-checkbox !p-2 !rounded-none"
                   name="includeAdmins"
-                  required
                   type="checkbox"
                   checked={formData.includeAdmins}
                   onChange={handleInputChange}
@@ -211,9 +217,7 @@ const Configure: React.FC = () => {
                 <span className="font-semibold">Number of Rounds: {formData.numOfRounds}</span>
               </p>
               <p className="p2">
-                <span
-                  className={`font-semibold ${60 * parseInt(formData.minutes) + parseInt(formData.seconds) > 600 || 60 * parseInt(formData.minutes) + parseInt(formData.seconds) < 10 ? "text-red-500" : ""}`}
-                >
+                <span className={`font-semibold ${isRoundTimeInvalid() ? "text-red-500" : ""}`}>
                   Time per Round: {formData.minutes} min {formData.seconds} sec
                 </span>
               </p>
@@ -228,7 +232,7 @@ const Configure: React.FC = () => {
               <button
                 className={`btn btn-success-outline ${startLoading ? "hover:!text-[#d6dbdf] hover:!border-[#d6dbdf]" : ""}`}
                 onClick={handleSubmit}
-                disabled={startLoading}
+                disabled={startLoading || isRoundTimeInvalid()}
               >
                 {startLoading ? "Starting..." : "Yes"}
               </button>
