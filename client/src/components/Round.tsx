@@ -81,13 +81,15 @@ const Round: React.FC = () => {
   return (
     <div className="flex flex-col w-full items-center justify-center my-2">
       {isCountdownPeriod ? (
-        <div className="fixed z-10 inset-0 backdrop-brightness-50 backdrop-blur-sm">
-          <div className="flex w-full h-full items-center justify-center">
+        <>
+          <div className="z-40 absolute inset-0 bg-black/50 backdrop-brightness-50"></div>
+
+          <div className="z-50 absolute inset-0 bg-black/50 flex w-full h-full items-center justify-center">
             <div className="flex flex-row items-center justify-center">
               <h2 className="h2 !font-bold !text-white px-6">The next round starts in {countdown}</h2>
             </div>
           </div>
-        </div>
+        </>
       ) : (
         <>
           <div className="flex w-full justify-between my-[2px]">
