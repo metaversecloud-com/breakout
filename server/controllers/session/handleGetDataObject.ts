@@ -1,4 +1,4 @@
-import { World, WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
+import { WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
 import { Request, Response } from "express";
 
 export default async function handleGetDataObject(req: Request, res: Response) {
@@ -10,13 +10,7 @@ export default async function handleGetDataObject(req: Request, res: Response) {
       return res.status(404).json({ message: "Asset not found" });
     }
 
-    const worldActivity = WorldActivity.create(credentials.urlSlug, {
-      credentials: {
-        interactiveNonce: credentials.interactiveNonce,
-        interactivePublicKey: credentials.interactivePublicKey,
-        visitorId: credentials.visitorId,
-      },
-    });
+    const worldActivity = WorldActivity.create(credentials.urlSlug, { credentials });
 
     const visitors = await worldActivity.fetchVisitorsInZone({ droppedAssetId: keyAsset.dataObject.landmarkZoneId });
     const visitorProfileIds = Object.values(visitors).map((visitor) => visitor.profileId);

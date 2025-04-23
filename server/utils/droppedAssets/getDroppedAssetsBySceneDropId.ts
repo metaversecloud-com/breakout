@@ -2,24 +2,15 @@ import { Credentials } from "../../types/Credentials.js";
 import { IDroppedAsset } from "../../types/DroppedAssetInterface.js";
 import { World, errorHandler } from "../index.js";
 
-export const getDroppedAssetsBySceneDropId = async (
-  credentials: Credentials,
-  sceneDropId: string,
-) => {
+export const getDroppedAssetsBySceneDropId = async (credentials: Credentials, sceneDropId: string) => {
   try {
-    const { interactivePublicKey, interactiveNonce, urlSlug, visitorId } = credentials;
+    const { urlSlug } = credentials;
 
-    const world = World.create(urlSlug, {
-      credentials: {
-        interactiveNonce,
-        interactivePublicKey,
-        visitorId,
-      },
-    });
+    const world = World.create(urlSlug, { credentials });
 
-    const droppedAssets = await world.fetchDroppedAssetsBySceneDropId({
+    const droppedAssets = (await world.fetchDroppedAssetsBySceneDropId({
       sceneDropId,
-    }) as IDroppedAsset[];
+    })) as IDroppedAsset[];
 
     return droppedAssets;
   } catch (error) {
