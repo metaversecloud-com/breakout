@@ -1,4 +1,4 @@
-import { DroppedAsset, Visitor } from "@rtsdk/topia";
+import { DroppedAsset, DroppedAssetInterface, Visitor, VisitorInterface, WorldActivityType } from "@rtsdk/topia";
 import { AnalyticType, Credentials } from "../../types/index.js";
 import { getDroppedAssetsBySceneDropId } from "../../utils/droppedAssets/getDroppedAssetsBySceneDropId.js";
 import { World, WorldActivity, errorHandler, getCredentials, getDroppedAsset } from "../../utils/index.js";
@@ -41,13 +41,14 @@ export const endBreakout = (key: string) => {
 };
 
 export const updateAdminCredentials = (credentials: Credentials) => {
-  const session = Object.entries(breakouts).find(([_, data]) => data.landmarkZoneId === credentials.assetId);
-  if (session && session[1].adminProfileId === credentials.profileId) {
+  const { assetId, profileId, interactiveNonce } = credentials;
+  const session = Object.entries(breakouts).find(([_, data]) => data.landmarkZoneId === assetId);
+  if (session && session[1].adminProfileId === profileId) {
     const [key, _] = session as [string, Breakouts[string]];
 
     if (
-      breakouts[key].adminProfileId === credentials.profileId &&
-      breakouts[key].adminOriginalInteractiveNonce !== credentials.interactiveNonce
+      breakouts[key].adminProfileId === profileId &&
+      breakouts[key].adminOriginalInteractiveNonce !== interactiveNonce
     ) {
       breakouts[key].adminCredentials = { ...credentials, assetId: key };
     }
@@ -98,6 +99,7 @@ const getAnalytics = (includedVisitors: Visitor[], matches: string[][], urlSlug:
 export default async function handleSetBreakoutConfig(req: Request, res: Response) {
   try {
     const credentials = getCredentials(req.query);
+    const { assetId, profileId, interactiveNonce, sceneDropId, urlSlug } = credentials;
 
     const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
     const numOfRounds = Math.min(parseInt(req.body.numOfRounds), 25);
@@ -115,28 +117,22 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       numOfGroups < 1 ||
       numOfRounds < 1
     ) {
-      console.log(`Invalid configuration for ${credentials.assetId}`);
+      console.log(`Invalid configuration for ${assetId}`);
       return res.status(400).json({ message: "Invalid configuration" });
     }
     const [keyAsset, breakoutScene]: [IDroppedAsset, DroppedAsset[]] = await Promise.all([
       getDroppedAsset(credentials),
-      getDroppedAssetsBySceneDropId(credentials, credentials.sceneDropId),
+      getDroppedAssetsBySceneDropId(credentials, sceneDropId),
     ]);
 
     const privateZonesAtStart = breakoutScene.filter(
-      (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
+      (droppedAsset: DroppedAssetInterface) => droppedAsset.isPrivateZone,
     ) as DroppedAsset[];
     const landmarkZone = breakoutScene.find(
-      (droppedAsset: DroppedAsset) => droppedAsset.isLandmarkZoneEnabled,
+      (droppedAsset: DroppedAssetInterface) => droppedAsset.isLandmarkZoneEnabled,
     ) as DroppedAsset;
 
-    const worldActivityAtStart = WorldActivity.create(credentials.urlSlug, {
-      credentials: {
-        interactiveNonce: credentials.interactiveNonce,
-        interactivePublicKey: credentials.interactivePublicKey,
-        visitorId: credentials.visitorId,
-      },
-    });
+    const worldActivityAtStart = WorldActivity.create(urlSlug, { credentials });
 
     const timeFactor = new Date(Math.round(new Date().getTime() / 10000) * 10000);
     const lockId = `${keyAsset.id!}_${timeFactor}`;
@@ -146,10 +142,8 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       droppedAssetId: keyAsset.dataObject!.landmarkZoneId,
       shouldIncludeAdminPermissions: true,
     });
-    const includedVisitors = Object.values(visitorsObj).filter((visitor) => {
-      if (!includeAdmins) {
-        return !visitor.isAdmin;
-      }
+    const includedVisitors = Object.values(visitorsObj).filter((visitor: VisitorInterface) => {
+      if (!includeAdmins) return !visitor.isAdmin;
       return true;
     });
     const participants = includedVisitors.map((visitor) => visitor.profileId) as string[];
@@ -173,11 +167,11 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           analytics: [
             {
               analyticName: "starts",
-              urlSlug: credentials.urlSlug,
+              urlSlug: urlSlug,
             },
             {
               analyticName: `groupConfigOf${numOfGroups}`,
-              urlSlug: credentials.urlSlug,
+              urlSlug: urlSlug,
             },
             {
               analyticName: "rounds",
@@ -203,19 +197,13 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
               breakouts[keyAsset.id!].adminCredentials.interactiveNonce
             ) {
-              worldActivity = WorldActivity.create(credentials.urlSlug, {
-                credentials: {
-                  interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
-                  interactivePublicKey: credentials.interactivePublicKey,
-                  visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
-                },
-              });
+              worldActivity = WorldActivity.create(urlSlug, { credentials });
               const breakoutScene: DroppedAsset[] = await getDroppedAssetsBySceneDropId(
                 breakouts[keyAsset.id!].adminCredentials,
-                credentials.sceneDropId,
+                sceneDropId,
               );
               privateZones = breakoutScene.filter(
-                (droppedAsset: DroppedAsset) => droppedAsset.isPrivateZone,
+                (droppedAsset: DroppedAssetInterface) => droppedAsset.isPrivateZone,
               ) as DroppedAsset[];
             }
 
@@ -224,10 +212,8 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               shouldIncludeAdminPermissions: true,
             });
 
-            const includedVisitors = Object.values(visitorsObj).filter((visitor) => {
-              if (!includeAdmins) {
-                return !visitor.isAdmin;
-              }
+            const includedVisitors = Object.values(visitorsObj).filter((visitor: VisitorInterface) => {
+              if (!includeAdmins) return !visitor.isAdmin;
               return true;
             });
             const participants = includedVisitors.map((visitor) => visitor.profileId) as string[];
@@ -242,7 +228,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
             );
 
             const timeout = setTimeout(() => {
-              const world = World.create(credentials.urlSlug, { credentials });
+              const world = World.create(urlSlug, { credentials });
               world
                 .triggerParticle({
                   name: "pastelConfetti_fall",
@@ -257,11 +243,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
 
             breakouts[keyAsset.id!].timeouts.push(timeout);
 
-            const { participantsAnalytics, groupSizeAnalytics } = getAnalytics(
-              includedVisitors,
-              matches,
-              credentials.urlSlug,
-            );
+            const { participantsAnalytics, groupSizeAnalytics } = getAnalytics(includedVisitors, matches, urlSlug);
 
             keyAsset
               .updateDataObject(
@@ -300,13 +282,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               breakouts[keyAsset.id!].adminOriginalInteractiveNonce !==
               breakouts[keyAsset.id!].adminCredentials.interactiveNonce
             ) {
-              worldActivity = WorldActivity.create(credentials.urlSlug, {
-                credentials: {
-                  interactiveNonce: breakouts[keyAsset.id!].adminCredentials.interactiveNonce,
-                  interactivePublicKey: credentials.interactivePublicKey,
-                  visitorId: breakouts[keyAsset.id!].adminCredentials.visitorId,
-                },
-              });
+              worldActivity = WorldActivity.create(urlSlug, { credentials });
             }
 
             const visitorsObj = await worldActivity.fetchVisitorsInZone({
@@ -314,8 +290,9 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
               shouldIncludeAdminPermissions: true,
             });
             if (!includeAdmins) {
-              Object.values(visitorsObj).forEach((visitor) => {
+              Object.values(visitorsObj).forEach((visitor: VisitorInterface) => {
                 if (visitor.isAdmin) {
+                  // @ts-ignore
                   delete visitorsObj[visitor.visitorId];
                 }
               });
@@ -346,8 +323,8 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     breakouts[keyAsset.id!] = {
       interval: interval,
       timeouts: [],
-      adminProfileId: credentials.profileId,
-      adminOriginalInteractiveNonce: credentials.interactiveNonce,
+      adminProfileId: profileId,
+      adminOriginalInteractiveNonce: interactiveNonce,
       adminCredentials: credentials,
       landmarkZoneId: keyAsset.dataObject!.landmarkZoneId,
       data: {
@@ -363,7 +340,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     const matches = getMatches(true, keyAsset.id!, participants, breakouts);
 
     const timeout = setTimeout(() => {
-      const world = World.create(credentials.urlSlug, { credentials });
+      const world = World.create(urlSlug, { credentials });
 
       world
         .triggerParticle({
@@ -374,12 +351,14 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
         .then()
         .catch(() => console.error("Error: Cannot trigger particle"));
 
+      world.triggerActivity({ type: WorldActivityType.GAME_ON, assetId });
+
       placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZonesAtStart);
     }, countdown * 1000);
 
     breakouts[keyAsset.id!].timeouts.push(timeout);
 
-    const { participantsAnalytics, groupSizeAnalytics } = getAnalytics(includedVisitors, matches, credentials.urlSlug);
+    const { participantsAnalytics, groupSizeAnalytics } = getAnalytics(includedVisitors, matches, urlSlug);
 
     keyAsset
       .updateDataObject(
