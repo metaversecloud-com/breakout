@@ -12,7 +12,7 @@ import Header from "@/components/Header";
 const Home: React.FC = () => {
   const dispatch = useContext(GlobalDispatchContext);
 
-  const { hasInteractiveParams, isAdmin, backendAPI, initLoading, sessionData } = useContext(GlobalStateContext);
+  const { isAdmin, backendAPI, initLoading, sessionData } = useContext(GlobalStateContext);
 
   const [endLoading, setEndLoading] = useState(false);
 

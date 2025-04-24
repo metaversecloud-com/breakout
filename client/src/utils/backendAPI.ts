@@ -1,5 +1,5 @@
-import axios from 'axios';
-import { InteractiveParams } from '../context/types';
+import axios, { InternalAxiosRequestConfig } from "axios";
+import { InteractiveParams } from "../context/types";
 
 const setupBackendAPI = async (interactiveParams: InteractiveParams) => {
   const backendAPI = axios.create({
@@ -11,7 +11,7 @@ const setupBackendAPI = async (interactiveParams: InteractiveParams) => {
 
   // Only do this if have interactive nonce.
   if (interactiveParams.assetId) {
-    backendAPI.interceptors.request.use((config: any) => {
+    backendAPI.interceptors.request.use((config: InternalAxiosRequestConfig) => {
       if (!config?.params) config.params = {};
       config.params = { ...config.params };
       config.params["assetId"] = interactiveParams.assetId;

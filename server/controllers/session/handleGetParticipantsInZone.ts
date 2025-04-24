@@ -9,13 +9,7 @@ export default async function handleGetParticipantsInZone(req: Request, res: Res
       return res.status(404).json({ message: "Asset not found" });
     }
 
-    const worldActivity = WorldActivity.create(credentials.urlSlug, {
-      credentials: {
-        interactiveNonce: credentials.interactiveNonce,
-        interactivePublicKey: credentials.interactivePublicKey,
-        visitorId: credentials.visitorId,
-      },
-    });
+    const worldActivity = WorldActivity.create(credentials.urlSlug, { credentials });
     const visitors = await worldActivity.fetchVisitorsInZone({ droppedAssetId: keyAsset.dataObject.landmarkZoneId });
     const participants = Object.values(visitors).map(({ profileId, username }) => {
       return {
