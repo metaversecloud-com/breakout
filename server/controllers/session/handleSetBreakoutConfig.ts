@@ -235,8 +235,13 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
                   duration: 5,
                   position: keyAsset.position,
                 })
-                .then()
-                .catch(() => console.error("Error: Cannot trigger particle"));
+                .catch((error) =>
+                  errorHandler({
+                    error,
+                    functionName: "handleSetBreakoutConfig",
+                    message: "Error triggering particle effects",
+                  }),
+                );
 
               placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZones);
             }, countdown * 1000);
@@ -341,6 +346,13 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
 
     const timeout = setTimeout(() => {
       const world = World.create(urlSlug, { credentials });
+      world.triggerActivity({ type: WorldActivityType.GAME_ON, assetId }).catch((error) =>
+        errorHandler({
+          error,
+          functionName: "handleSetBreakoutConfig",
+          message: "Error triggering world activity",
+        }),
+      );
 
       world
         .triggerParticle({
@@ -348,10 +360,13 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
           duration: 5,
           position: keyAsset.position,
         })
-        .then()
-        .catch(() => console.error("Error: Cannot trigger particle"));
-
-      world.triggerActivity({ type: WorldActivityType.GAME_ON, assetId });
+        .catch((error) =>
+          errorHandler({
+            error,
+            functionName: "handleSetBreakoutConfig",
+            message: "Error triggering world activity",
+          }),
+        );
 
       placeVisitors(matches, visitorsObj, participants, keyAsset.id!, breakouts, privateZonesAtStart);
     }, countdown * 1000);

@@ -4,7 +4,9 @@ import { Request, Response } from "express";
 export default async function handleGetDataObject(req: Request, res: Response) {
   try {
     const credentials = getCredentials(req.query);
+
     const keyAsset = await getDroppedAsset(credentials);
+    if (!keyAsset.dataObject.landmarkZoneId) throw "No landmark zone ID found in data object";
 
     if (keyAsset.error) {
       return res.status(404).json({ message: "Asset not found" });
@@ -17,9 +19,7 @@ export default async function handleGetDataObject(req: Request, res: Response) {
 
     keyAsset.dataObject.participants = visitorProfileIds;
 
-    if (keyAsset) {
-      return res.status(200).json(keyAsset.dataObject);
-    }
+    if (keyAsset) return res.status(200).json(keyAsset.dataObject);
   } catch (error: any) {
     return errorHandler({
       error,
