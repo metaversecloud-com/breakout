@@ -10,7 +10,13 @@ export default async function closeIframeForVisitors(visitors: { [key: string]: 
   if (visitorsArr && visitorsArr.length > 0) {
     visitorsArr.forEach((visitor) => {
       if (visitor) {
-        promises.push(visitor.closeIframe(droppedAssetId));
+        visitor.closeIframe(droppedAssetId).catch((error: any) =>
+          errorHandler({
+            error,
+            functionName: "closeIframeForVisitors",
+            message: "Error closing iframe",
+          }),
+        );
       }
     });
   }
