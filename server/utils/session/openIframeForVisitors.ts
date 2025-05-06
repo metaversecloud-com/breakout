@@ -10,14 +10,20 @@ export default async function openIframeForVisitors(visitors: { [key: string]: V
   const visitorsArr = Object.values(visitors);
   if (visitorsArr && visitorsArr.length > 0) {
     visitorsArr.forEach((visitor) => {
-      promises.push(
-        visitor.openIframe({
+      visitor
+        .openIframe({
           droppedAssetId,
           link: process.env.APP_URL!,
           shouldOpenInDrawer: true,
           title: "Breakout",
-        }),
-      );
+        })
+        .catch((error: any) =>
+          errorHandler({
+            error,
+            functionName: "openIframeForVisitors",
+            message: "Error opening iframe",
+          }),
+        );
     });
   }
   console.log(`Opening iframes for ${visitorsArr.length} visitors in ${droppedAssetId}`);

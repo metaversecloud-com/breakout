@@ -5,7 +5,13 @@ export default async function handleCloseIframe(req: Request, res: Response) {
   try {
     const credentials = getCredentials(req.query);
     const visitor = await getVisitor(credentials);
-    await visitor.closeIframe(`${req.query?.assetId}`);
+    await visitor.closeIframe(`${req.query?.assetId}`).catch((error: any) =>
+      errorHandler({
+        error,
+        functionName: "handleCloseIframe",
+        message: "Error closing iframe",
+      }),
+    );
 
     return res.json({ success: true });
   } catch (error) {
