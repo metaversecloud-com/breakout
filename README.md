@@ -4,6 +4,20 @@
 
 Breakout is a fun speed networking experience.
 
+## Built With
+
+### Client
+
+![React](https://img.shields.io/badge/react-%2320232a.svg?style=for-the-badge&logo=react&logoColor=%2361DAFB)
+![Vite](https://img.shields.io/badge/vite-%23646CFF.svg?style=for-the-badge&logo=vite&logoColor=white)
+![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
+
+### Server
+
+![Node.js](https://img.shields.io/badge/node.js-%2343853D.svg?style=for-the-badge&logo=node.js&logoColor=white)
+![Express](https://img.shields.io/badge/express-%23000000.svg?style=for-the-badge&logo=express&logoColor=white)
+
 ## Key Features
 
 - Be assigned into groups which will switch in timed intervals
@@ -25,11 +39,8 @@ Breakout is a fun speed networking experience.
 - Access: Click on the key asset to open the drawer and then select the Admin tab. Any changes you make here will only affect this instance of the application and will not impact other instances dropped in this or other worlds.
 
 - Admins can configure and start a breakout session. Anyone who is in the breakout area at the start of a round will be included in the experience.
--  The number of groups may be adjusted at the start of a round to account for the increase or decrease in the number of participants.
--  The Admin who started the breakout session cannot leave the world while the session is in progress, otherwise it will be halted.
-
-
-
+- The number of groups may be adjusted at the start of a round to account for the increase or decrease in the number of participants.
+- The Admin who started the breakout session cannot leave the world while the session is in progress, otherwise it will be halted.
 
 ### Data objects
 
@@ -48,6 +59,20 @@ _We use data objects to store information about each implementation of the app p
   - totalGamesResetCount (`keyAssets.${assetId}.totalGamesResetCount`)
   - totalGamesWonCount (`keyAssets.${assetId}.totalGamesWonCount`)
 
+## Environment Variables
+
+Create a `.env` file in the root directory. See `.env-example` for a template.
+
+| Variable             | Description                                                                        | Required |
+| -------------------- | ---------------------------------------------------------------------------------- | -------- |
+| `PORT`               | Server port                                                                        | Yes      |
+| `INSTANCE_PROTOCOL`  | Protocol for Topia API (`https` for production)                                    | Yes      |
+| `NODE_ENV`           | Node environment                                                                   | No       |
+| `APP_URL`            | Public URL for the app, used for webhook callbacks                                 | Yes      |
+| `INSTANCE_DOMAIN`    | Topia API domain (`api.topia.io` for production, `api-stage.topia.io` for staging) | Yes      |
+| `INTERACTIVE_KEY`    | Topia interactive app key                                                          | Yes      |
+| `INTERACTIVE_SECRET` | Topia interactive app secret                                                       | Yes      |
+
 ## Developers:
 
 ### Getting Started
@@ -62,15 +87,9 @@ _We use data objects to store information about each implementation of the app p
 
 ### Add your .env environmental variables
 
-```json
-API_KEY=xxxxxxxxxxxxx
-INSTANCE_DOMAIN=api.topia.io
-INSTANCE_PROTOCOL=https
-INTERACTIVE_KEY=xxxxxxxxxxxxx
-INTERACTIVE_SECRET=xxxxxxxxxxxxxx
-```
+See [Environment Variables](#environment-variables) above.
 
-### Where to find API_KEY, INTERACTIVE_KEY and INTERACTIVE_SECRET
+### Where to find INTERACTIVE_KEY and INTERACTIVE_SECRET
 
 [Topia Dev Account Dashboard](https://dev.topia.io/t/dashboard/integrations)
 
