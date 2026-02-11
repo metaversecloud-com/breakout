@@ -39,11 +39,8 @@ Breakout is a fun speed networking experience.
 - Access: Click on the key asset to open the drawer and then select the Admin tab. Any changes you make here will only affect this instance of the application and will not impact other instances dropped in this or other worlds.
 
 - Admins can configure and start a breakout session. Anyone who is in the breakout area at the start of a round will be included in the experience.
--  The number of groups may be adjusted at the start of a round to account for the increase or decrease in the number of participants.
--  The Admin who started the breakout session cannot leave the world while the session is in progress, otherwise it will be halted.
-
-
-
+- The number of groups may be adjusted at the start of a round to account for the increase or decrease in the number of participants.
+- The Admin who started the breakout session cannot leave the world while the session is in progress, otherwise it will be halted.
 
 ### Data objects
 
@@ -62,6 +59,20 @@ _We use data objects to store information about each implementation of the app p
   - totalGamesResetCount (`keyAssets.${assetId}.totalGamesResetCount`)
   - totalGamesWonCount (`keyAssets.${assetId}.totalGamesWonCount`)
 
+## Environment Variables
+
+Create a `.env` file in the root directory. See `.env-example` for a template.
+
+| Variable             | Description                                                                        | Required |
+| -------------------- | ---------------------------------------------------------------------------------- | -------- |
+| `PORT`               | Server port                                                                        | Yes      |
+| `INSTANCE_PROTOCOL`  | Protocol for Topia API (`https` for production)                                    | Yes      |
+| `NODE_ENV`           | Node environment                                                                   | No       |
+| `APP_URL`            | Public URL for the app, used for webhook callbacks                                 | Yes      |
+| `INSTANCE_DOMAIN`    | Topia API domain (`api.topia.io` for production, `api-stage.topia.io` for staging) | Yes      |
+| `INTERACTIVE_KEY`    | Topia interactive app key                                                          | Yes      |
+| `INTERACTIVE_SECRET` | Topia interactive app secret                                                       | Yes      |
+
 ## Developers:
 
 ### Getting Started
@@ -76,15 +87,9 @@ _We use data objects to store information about each implementation of the app p
 
 ### Add your .env environmental variables
 
-```json
-API_KEY=xxxxxxxxxxxxx
-INSTANCE_DOMAIN=api.topia.io
-INSTANCE_PROTOCOL=https
-INTERACTIVE_KEY=xxxxxxxxxxxxx
-INTERACTIVE_SECRET=xxxxxxxxxxxxxx
-```
+See [Environment Variables](#environment-variables) above.
 
-### Where to find API_KEY, INTERACTIVE_KEY and INTERACTIVE_SECRET
+### Where to find INTERACTIVE_KEY and INTERACTIVE_SECRET
 
 [Topia Dev Account Dashboard](https://dev.topia.io/t/dashboard/integrations)
 
