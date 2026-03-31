@@ -59,6 +59,16 @@ _We use data objects to store information about each implementation of the app p
   - totalGamesResetCount (`keyAssets.${assetId}.totalGamesResetCount`)
   - totalGamesWonCount (`keyAssets.${assetId}.totalGamesWonCount`)
 
+## Implementation Requirements
+
+### Required Assets with Unique Names
+
+The app uses the following unique name patterns for managing dropped assets:
+
+| Unique Name Pattern | Description |
+| ------------------- | ----------- |
+| `Breakout_keyAsset` | Key asset   |
+
 ## Environment Variables
 
 Create a `.env` file in the root directory. See `.env-example` for a template.
