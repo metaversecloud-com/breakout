@@ -11,10 +11,10 @@ export default async function handleGetParticipantsInZone(req: Request, res: Res
 
     const worldActivity = WorldActivity.create(credentials.urlSlug, { credentials });
     const visitors = await worldActivity.fetchVisitorsInZone({ droppedAssetId: keyAsset.dataObject.landmarkZoneId });
-    const participants = Object.values(visitors).map(({ profileId, username }) => {
+    const participants = Object.values(visitors).map((v: any) => {
       return {
-        profileId,
-        username,
+        profileId: v.profileId,
+        username: v.username,
       };
     });
 
