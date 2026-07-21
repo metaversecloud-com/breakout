@@ -19,8 +19,23 @@ export default async function placeVisitors(
   shuffleArray(privateZones);
   const privateZoneCoordinates = privateZones.map((zone: DroppedAsset) => [zone.position!.x, zone.position!.y]);
   const promises: Promise<any>[] = [];
-  if (matches && matches.length > 0) {
-    matches.forEach((match, idx) => {
+
+  // Never place into more zones than the scene actually has. `numOfGroups`
+  // is already capped at `privateZones.length` in handleSetBreakoutConfig,
+  // but this second guard means a mismatched matches array (e.g. resurrected
+  // from an older breakout state where the scene has since shrunk) still
+  // places safely instead of throwing on out-of-bounds indexing.
+  const placementCount = Math.min(matches?.length ?? 0, privateZones.length);
+  if (placementCount < (matches?.length ?? 0)) {
+    console.warn(
+      `Only ${privateZones.length} private zone(s) available for ${matches.length} match group(s); ` +
+        `placing ${placementCount} and dropping the rest for ${assetId}.`,
+    );
+  }
+
+  if (matches && placementCount > 0) {
+    for (let idx = 0; idx < placementCount; idx++) {
+      const match = matches[idx];
       promises.push(
         privateZones[idx].updatePrivateZone({
           isPrivateZone: true,
@@ -33,8 +48,8 @@ export default async function placeVisitors(
       );
       match?.forEach((profileId) => {
         const visitor = Object.values(visitors).find((visitor: Visitor) => visitor.profileId === profileId);
-        let offsetX = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
-        let offsetY = Math.floor(Math.random() * (100 - 50 + 1)) + Math.floor(Math.random() * (100 - 50 + 1));
+        let offsetX = Math.floor(Math.random() * 20);
+        let offsetY = Math.floor(Math.random() * 20);
         if (Math.random() < 0.5) {
           offsetX *= -1;
         }
@@ -49,9 +64,9 @@ export default async function placeVisitors(
           }),
         );
       });
-    });
+    }
   }
-  console.log(`Placing ${participants.length} participants into ${matches.length} groups for ${assetId}`);
+  console.log(`Placing ${participants.length} participants into ${placementCount} groups for ${assetId}`);
   try {
     await Promise.allSettled(promises);
   } catch (error) {
@@ -62,4 +77,4 @@ export default async function placeVisitors(
       message: "Visitors Error: Cannot move visitors",
     });
   }
-};
+}
