@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: breakout0-config
+  labels:
+    app.kubernetes.io/name: breakout0
+data:
+  PORT: '3000'
+  NODE_ENV: 'production'
+  APP_URL: 'https://breakout0-dev-topia.topia-rtsdk.com'
+  INSTANCE_DOMAIN: 'api.topia.io'
+  INTERACTIVE_KEY: 'FxaILGeo2m6ckNkxRimP'
