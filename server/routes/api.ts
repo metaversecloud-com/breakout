@@ -8,6 +8,8 @@ import handleResetSession from "../controllers/session/handleResetSession.js";
 import handleGetParticipantsInZone from "../controllers/session/handleGetParticipantsInZone.js";
 import handleCloseIframe from "../controllers/session/handleCloseIframe.js";
 import handleCheckInteractiveCredentials from "../controllers/config/handleCheckInteractiveCredentials.js";
+import handleGetScenes from "../controllers/config/handleGetScenes.js";
+import handleReplaceScene from "../controllers/config/handleReplaceScene.js";
 
 const router = express.Router();
 const SERVER_START_DATE = new Date();
@@ -40,5 +42,8 @@ router.get("/get-participants", isAdmin, handleGetParticipantsInZone);
 router.post("/set-config", isAdmin, handleSetBreakoutConfig);
 router.post("/reset", isAdmin, handleResetSession);
 router.post("/close-iframe", handleCloseIframe);
+
+router.get("/scenes", isAdmin, handleGetScenes);
+router.post("/replace-scene", isAdmin, handleReplaceScene);
 
 export default router;
