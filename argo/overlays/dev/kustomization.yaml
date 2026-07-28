@@ -26,4 +26,4 @@ patches:
 images:
   - name: breakout0
     newName: 368076259134.dkr.ecr.us-east-1.amazonaws.com/sdk-example
-    digest: sha256:f8aeca0fb6be575ebb58b635d49eff29943fcd051cda1baadf01ac6c0213a069
+    digest: sha256:1ad8d2d868cd0a3dc59fe1b62cf2768cac41588ba56fa332a39e9c738e722fab
