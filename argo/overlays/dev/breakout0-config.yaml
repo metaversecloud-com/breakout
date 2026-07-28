@@ -10,3 +10,10 @@ data:
   APP_URL: 'https://breakout0-dev-topia.topia-rtsdk.com'
   INSTANCE_DOMAIN: 'api.topia.io'
   INTERACTIVE_KEY: 'FxaILGeo2m6ckNkxRimP'
+  SCENE_ID_STONE_SM: 'gjOtErie0ujBAvFZLhwy'
+  SCENE_ID_STONE_LG: 'PZvgt9iiQ0b2DvCWsDpH'
+  SCENE_ID_WOOD_SM: '21FTlL1BDehB94GALFv8'
+  SCENE_ID_WOOD_LG: 'fuuHx6W2DBo8MELAvSLj'
+  SCENE_ID_COLOR_SM: 'HgaMRIbtUmPfqJIkxOwF'
+  SCENE_ID_COLOR_LG: '6X4YemE5tIoIC7q62F1M'
+  
