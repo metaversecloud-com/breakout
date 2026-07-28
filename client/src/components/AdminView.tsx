@@ -106,7 +106,7 @@ const AdminView = () => {
         Pick a preset below and click <strong>Update Scene</strong> to swap it in.
       </p>
 
-      <div className="w-full mb-6">
+      <div className="w-full h-[100vh] mb-6">
         {scenes.map((scene) => {
           const previewSrc = PREVIEWS[scene.key];
           const isSelected = selectedKey === scene.key;
@@ -132,12 +132,7 @@ const AdminView = () => {
       {message && <p className="text-success py-2">{message}</p>}
       {errorMessage && <p className="text-danger py-2">{errorMessage}</p>}
 
-      <button
-        type="button"
-        className="btn btn-enhanced !w-72"
-        disabled={!selectedKey || swapping}
-        onClick={handleReplace}
-      >
+      <button type="button" className="btn sticky bottom-4" disabled={!selectedKey || swapping} onClick={handleReplace}>
         {swapping ? "Updating..." : "Update Scene"}
       </button>
     </div>
