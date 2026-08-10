@@ -5,6 +5,7 @@ import {
   Topia,
   AssetFactory,
   DroppedAssetFactory,
+  SceneFactory,
   UserFactory,
   VisitorFactory,
   WorldFactory,
@@ -22,9 +23,10 @@ const myTopiaInstance = new Topia(config);
 
 const Asset = new AssetFactory(myTopiaInstance);
 const DroppedAsset = new DroppedAssetFactory(myTopiaInstance);
+const Scene = new SceneFactory(myTopiaInstance);
 const User = new UserFactory(myTopiaInstance);
 const Visitor = new VisitorFactory(myTopiaInstance);
 const World = new WorldFactory(myTopiaInstance);
 const WorldActivity = new WorldActivityFactory(myTopiaInstance);
 
-export { Asset, DroppedAsset, myTopiaInstance, User, Visitor, World, WorldActivity };
+export { Asset, DroppedAsset, myTopiaInstance, Scene, User, Visitor, World, WorldActivity };

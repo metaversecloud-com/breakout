@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: breakout0
+  labels:
+    app.kubernetes.io/name: breakout0
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: breakout0
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

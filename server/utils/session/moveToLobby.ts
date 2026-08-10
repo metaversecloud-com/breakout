@@ -1,7 +1,11 @@
 import { DroppedAsset, Visitor } from "@rtsdk/topia";
 import { errorHandler } from "../errorHandler.js";
 
-export default async function moveToLobby(visitorsObj: { [key: string]: Visitor }, landmarkZone: DroppedAsset, keyAssetId: string) {
+export default async function moveToLobby(
+  visitorsObj: { [key: string]: Visitor },
+  landmarkZone: DroppedAsset,
+  keyAssetId: string,
+) {
   const visitors = Object.values(visitorsObj);
   const landmarkZoneCenter = [landmarkZone.position!.x, landmarkZone.position!.y];
   const promises: Promise<any>[] = [];
@@ -11,8 +15,8 @@ export default async function moveToLobby(visitorsObj: { [key: string]: Visitor 
     promises.push(
       visitor.moveVisitor({
         shouldTeleportVisitor: true,
-        x: landmarkZoneCenter[0] + Math.floor(Math.random() * 490) * xSign,
-        y: landmarkZoneCenter[1] + 600 + Math.floor(Math.random() * 231),
+        x: landmarkZoneCenter[0] + Math.floor(Math.random() * 100) * xSign,
+        y: landmarkZoneCenter[1],
       }),
     );
   });

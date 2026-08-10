@@ -37,6 +37,7 @@ const match = (
   roundNum: number,
   participants: string[],
   matchesObj: Record<string, string[][]>,
+  maxMatches: number,
 ) => {
   const allMatches: string[][] = [];
 
@@ -94,7 +95,11 @@ const match = (
       temp = difference(temp, allPossibleForCurrent);
     });
     allMatches.push(match.slice());
-    if (allMatches.length === 16) {
+    // Cap at the caller-supplied ceiling (= number of groups, i.e. private
+    // zones available). Previously hardcoded to 16; a scene with 8 zones and
+    // a 6-group config would over-produce matches and index off the end of
+    // the privateZones array in placeVisitors.
+    if (allMatches.length === maxMatches) {
       break;
     }
   }

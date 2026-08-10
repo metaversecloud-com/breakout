@@ -101,7 +101,7 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     const credentials = getCredentials(req.query);
     const { assetId, profileId, interactiveNonce, sceneDropId, urlSlug } = credentials;
 
-    const numOfGroups = Math.min(parseInt(req.body.numOfGroups), 16);
+    const numOfGroupsRequested = parseInt(req.body.numOfGroups);
     const numOfRounds = Math.min(parseInt(req.body.numOfRounds), 25);
     const minutes = parseInt(req.body.minutes);
     const seconds = parseInt(req.body.seconds);
@@ -112,9 +112,9 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
       isNaN(seconds) ||
       60 * minutes + seconds < 10 ||
       60 * minutes + seconds > 600 ||
-      isNaN(numOfGroups) ||
+      isNaN(numOfGroupsRequested) ||
       isNaN(numOfRounds) ||
-      numOfGroups < 1 ||
+      numOfGroupsRequested < 1 ||
       numOfRounds < 1
     ) {
       console.log(`Invalid configuration for ${assetId}`);
@@ -131,6 +131,16 @@ export default async function handleSetBreakoutConfig(req: Request, res: Respons
     const landmarkZone = breakoutScene.find(
       (droppedAsset: DroppedAssetInterface) => droppedAsset.isLandmarkZoneEnabled,
     ) as DroppedAsset;
+
+    // Cap `numOfGroups` at the actual number of private zones in the scene —
+    // the layout is scene-authored and can be any size (8, 16, or otherwise).
+    // Previously this was hardcoded to 16 which either let more groups form
+    // than there were zones (out-of-bounds placement) or wasted extra zones.
+    if (privateZonesAtStart.length < 1) {
+      console.log(`No private zones found in scene for ${assetId}`);
+      return res.status(400).json({ message: "No private zones configured in this scene" });
+    }
+    const numOfGroups = Math.min(numOfGroupsRequested, privateZonesAtStart.length);
 
     const worldActivityAtStart = WorldActivity.create(urlSlug, { credentials });
 
