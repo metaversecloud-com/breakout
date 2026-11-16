@@ -70,8 +70,8 @@ export type RouteSpec = {
 const FOREIGN_KEY_IGNORED = "EXP-466: getCredentials never checks interactivePublicKey";
 const FOREIGN = { acceptsForeignCredentials: FOREIGN_KEY_IGNORED, unnamedCredentialError: FOREIGN_KEY_IGNORED };
 // The isAdmin middleware calls getCredentials outside any try/catch: a request without credentials is an
-// unhandled rejection and @rtsdk/topia's hook exits the process.
-const ADMIN_MIDDLEWARE_CRASH = "EXP-466: isAdmin middleware throws outside try/catch, server exits";
+// unhandled rejection that's only logged, so the request is never answered.
+const ADMIN_MIDDLEWARE_CRASH = "EXP-466: isAdmin middleware throws outside try/catch, request never answered";
 const ADMIN = { ...FOREIGN, crashesServer: ADMIN_MIDDLEWARE_CRASH };
 
 export const CREDENTIALED_ROUTES: RouteSpec[] = [
@@ -97,7 +97,7 @@ export const CREDENTIALED_ROUTES: RouteSpec[] = [
     path: "/setup",
     basePath: "/webhook",
     credentialsIn: "body",
-    knownBugs: { ...FOREIGN, crashesServer: "EXP-466: /webhook/setup reads credentials outside try/catch, server exits" },
+    knownBugs: { ...FOREIGN, crashesServer: "EXP-466: /webhook/setup reads credentials outside try/catch, request never answered" },
   },
 ];
 
@@ -155,10 +155,7 @@ export const HEALTH_KNOWN_BUGS: { incompleteContract?: string } = {};
  * registers its own logging handler. Fix: process.removeAllListeners("unhandledRejection") before
  * registering the app's handler.
  */
-export const PROCESS_KNOWN_BUGS: { exitsOnUnhandledRejection?: string } = {
-  exitsOnUnhandledRejection:
-    "EXP-472: @rtsdk/topia's unhandledRejection hook calls process.exit(1); server/index.ts's handler doesn't stop it",
-};
+export const PROCESS_KNOWN_BUGS: { exitsOnUnhandledRejection?: string } = {};
 
 /**
  * The request system.spec sends a malformed JSON body to. Default: the first POST/PUT route in
@@ -174,9 +171,7 @@ export const MALFORMED_JSON_REQUEST: { method: "post" | "put"; path: string } | 
  * middleware after express.json()). Fix: an error middleware that answers body-parser errors
  * (err.type === "entity.parse.failed") with res.status(400).json({ success: false, error: "Invalid JSON" }).
  */
-export const ERROR_KNOWN_BUGS: { malformedJson?: string } = {
-  malformedJson: "EXP-473: no error middleware: Express' default error page shows the stack trace (NODE_ENV isn't production)",
-};
+export const ERROR_KNOWN_BUGS: { malformedJson?: string } = {};
 
 /**
  * true starts mock-redis/server.mjs (an in-memory Redis) next to mock-topia and points REDIS_URL at it
